@@ -1,6 +1,6 @@
 #############################################################   .=<|||>=.   ####
 #|                                                              |(0)|||||      #
-#|   app.py                                                     !!!!!!|||
+#|   core/duplication_manager.py                                !!!!!!|||
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
@@ -9,16 +9,17 @@
 #|                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 
-import sys
-from PyQt5.QtWidgets import QApplication
-from ui.main_window import MainWindow
-from ui.tab_bar import CustomTabBar
+import os
+from core.model_items import GroupItem
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
+def perform_unique_duplication(selected_items, target_view, window):
+    """Effectue une duplication spécifique d'items."""
+    for item in selected_items:
+        if isinstance(item, GroupItem):
+            if item.duplicate(target_view):
+                element_id = item.element_id
+                bg_filename = os.path.basename(target_view.scene().name)
 
-    CustomTabBar._window = window
-    window.show()
-
-    sys.exit(app.exec_())
+                tree_item = window.tree_items_by_id.get(element_id)
+                if tree_item:
+                    window.apply_tree_item_color(tree_item, bg_filename)

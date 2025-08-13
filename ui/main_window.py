@@ -24,6 +24,7 @@ from PyQt5.QtCore import (
     Qt, QPointF,
 )
 from core.svg_parser import parse_svg_or_group
+from core.duplication_manager import perform_unique_duplication
 from ui.svg_layer import SvgLayerWidget
 from ui.toolbar import CollapsibleToolbar
 from ui.image_layer import ImageLayerWidget
@@ -31,15 +32,15 @@ from ui.dialogs import (
     NestingConfigDialog, BackgroundSelectionDialog, DarkFileDialog,
     DarkMessageBox,
 )
-from .delegates import TreeItemHighlightDelegate
-from .tab_bar import CustomTabBar
+from ui.delegates import TreeItemHighlightDelegate
+from ui.tab_bar import CustomTabBar
 from utils.debug import debug_log
 
 
 class MainWindow(QMainWindow):
     _instance = None
 
-    def __init__(self, manager):
+    def __init__(self):
         def choose_svg_file():
             """Ouvre une boîte de dialogue pour choisir un fichier SVG au démarrage avec thème sombre."""
 
@@ -60,7 +61,6 @@ class MainWindow(QMainWindow):
 
         super().__init__()
         MainWindow._instance = self
-        self.manager = manager
         self.setWindowTitle("Wood Inlay Tool - Qt SVG")
         self.resize(1200, 800)
 
@@ -197,25 +197,30 @@ class MainWindow(QMainWindow):
 
     def load_image_layer(self, image_path):
         debug_log(f"[LOAD] ➜ Traitement de : {image_path}")
+        supported_formats = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".pdf")
 
+        if not image_path.lower().endswith(supported_formats):
+            DarkMessageBox.critical(self, "Erreur", f"❌ Format non supporté : {image_path}")
+            return
+
+        # 📄 Conversion ou chargement direct selon l'extension
         if image_path.lower().endswith(".pdf"):
             pixmap = self.render_pdf_to_pixmap(image_path)
-            if pixmap is None or pixmap.isNull():
-                DarkMessageBox.critical(self, "Erreur", f"❌ Impossible de charger le PDF : {image_path}")
-                return
-            layer_widget = ImageLayerWidget(image_path=image_path, pixmap=pixmap)
         else:
             pixmap = QPixmap(image_path)
-            if pixmap.isNull():
-                debug_log(f" [ERROR] ❌ Image invalide ou introuvable : {image_path}")
-                DarkMessageBox.critical(self, "Erreur", f"❌ Impossible de charger l'image : {image_path}")
-                return
-            layer_widget = ImageLayerWidget(image_path=image_path, pixmap=pixmap)
 
+        if pixmap is None or pixmap.isNull():
+            debug_log(f"[ERROR] ❌ Impossible de charger le fichier : {image_path}")
+            DarkMessageBox.critical(self, "Erreur", f"❌ Impossible de charger le fichier : {image_path}")
+            return
+
+        # 🎯 Création du widget calque image
+        layer_widget = ImageLayerWidget(image_path=image_path, pixmap=pixmap)
+
+        # 🔶 Cadre extérieur coloré (bordure)
         color = layer_widget.margin_color.name()
         debug_log(f"[OK] ✅ Couleur de bordure : {color}")
 
-        # 🔶 Cadre extérieur coloré (bordure)
         outer_frame = QWidget()
         outer_frame.setStyleSheet(f"background-color: {color}; border-radius: 0px;")
 
@@ -231,23 +236,21 @@ class MainWindow(QMainWindow):
 
         inner_layout.addWidget(inner_container)
 
-        # ⚠️ Changer ici le fond de la vue pour du gris foncé
+        # ⚠️ Fond gris foncé
         layer_widget.view.setBackgroundBrush(QBrush(QColor(53, 53, 53)))
 
         tab_name = os.path.basename(image_path)
 
-        # 📌 Insère juste avant le +
+        # 📌 Insertion avant l’onglet "+"
         plus_index = self.tabs.count() - 1
         index = self.tabs.insertTab(plus_index, outer_frame, tab_name)
 
         self.image_layer_widgets[image_path] = layer_widget
         self.image_layers[outer_frame] = layer_widget
 
-        if isinstance(self.tabs.tabBar(), CustomTabBar):
-            self.tabs.tabBar().set_tab_color(index, layer_widget.margin_color)
+        self.tabs.tabBar().set_tab_color(index, layer_widget.margin_color)
 
         print(f"[INFO] 🟢 Onglet ajouté : {tab_name} (image_path {image_path})")
-
 
     def load_svg_layer(self, file_path):
         # Créer l'objet SvgLayerWidget
@@ -453,7 +456,7 @@ class MainWindow(QMainWindow):
             return
 
         # Exécution de la duplication
-        self.manager.perform_unique_duplication(selected_items, target_view)
+        perform_unique_duplication(selected_items, target_view, self)
         debug_log("END")
 
     def open_background_selection_dialog(self):

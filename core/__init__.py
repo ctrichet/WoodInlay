@@ -12,6 +12,7 @@
 from .nesting import Individual, NestingEngine, approximate_polygon
 from .model_items import PathItem, CompositeGroupItem, GroupItem, DuplicataGroupItem
 from .svg_parser import parse_svg_or_group
+from .duplication_manager import perform_unique_duplication
 __all__ = [
     "Individual",
     "NestingEngine",
@@ -20,4 +21,5 @@ __all__ = [
     "CompositeGroupItem",
     "GroupItem",
     "DuplicataGroupItem",
+    "perform_unique_duplication",
 ]

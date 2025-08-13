@@ -15,7 +15,6 @@ from PyQt5.QtSvg import QSvgRenderer, QGraphicsSvgItem
 from PyQt5.QtGui import QPainter
 from utils.debug import debug_log
 from .views import ZoomableView
-from woodinlay import WoodInlayManager
 
 class SvgLayerWidget(QWidget):
     _instance = None
