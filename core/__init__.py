@@ -11,7 +11,7 @@
 
 from .nesting import Individual, NestingEngine, approximate_polygon
 from .model_items import PathItem, CompositeGroupItem, GroupItem, DuplicataGroupItem
-
+from .svg_parser import parse_svg_or_group
 __all__ = [
     "Individual",
     "NestingEngine",

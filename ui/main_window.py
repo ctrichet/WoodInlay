@@ -23,7 +23,7 @@ from PyQt5.QtGui import (
 from PyQt5.QtCore import (
     Qt, QPointF,
 )
-
+from core.svg_parser import parse_svg_or_group
 from ui.svg_layer import SvgLayerWidget
 from ui.toolbar import CollapsibleToolbar
 from ui.image_layer import ImageLayerWidget
@@ -89,10 +89,10 @@ class MainWindow(QMainWindow):
         container.setLayout(self.layout)
         self.setCentralWidget(container)
 
-        debug_log("TT va bien!")
         # SVG Layer (doit exister avant on_tab_changed)
-        self.load_svg_layer(choose_svg_file())
-        debug_log("TT va toujours bien!")
+        svg_file = choose_svg_file()
+        self.load_svg_layer(svg_file)
+        parse_svg_or_group(svg_file, self)
         self.svg_preview.setScene(self.svg_layer.scene)
         self.init_connections()
 
