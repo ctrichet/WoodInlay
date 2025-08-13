@@ -22,7 +22,6 @@ if __name__ == "__main__":
 
     manager.window = window
     CustomTabBar._window = window
-    manager.parse_svg_or_group()
     window.show()
 
     sys.exit(app.exec_())
