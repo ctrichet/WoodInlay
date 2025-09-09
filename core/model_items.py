@@ -8,13 +8,14 @@
 #|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
 #|                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
+from math import hypot
 from PyQt5.QtWidgets import (
     QGraphicsPathItem, QGraphicsItemGroup, QGraphicsPixmapItem,
     QGraphicsSceneMouseEvent,
 )
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import (
-    QPainterPath, QImage, QPixmap, QPainter, QTransform
+    QPainterPath, QImage, QPixmap, QPainter, QTransform, QPolygonF,
 )
 from math import radians, cos, sin, atan2, degrees
 from svg.path import parse_path
@@ -52,6 +53,7 @@ class PathItem(QGraphicsPathItem):
                         path.lineTo(e.end.real, e.end.imag)
             except Exception as e:
                 print(f"[ERREUR] Parsing du path SVG échoué : {e}")
+            path.setFillRule(Qt.OddEvenFill)
             return path
 
         painter_path = parse_svg_path_d(d_string)
@@ -219,3 +221,53 @@ class DuplicataGroupItem(CompositeGroupItem):
         masked_item.setRotation(-self.rotation())
         masked_item.setPos(self.mask_item_pos + offset)
         self.mask_item = masked_item
+
+    def to_polygon(self, tolerance: float = 0.002) -> QPolygonF:
+        """
+        Retourne un QPolygonF approximant le tracé fermé du duplicata,
+        transformé dans les coordonnées de la scène, prêt pour le nesting.
+        La simplification conserve le premier point exact pour un offset fiable.
+        :param tolerance: tolérance de simplification en pixels
+        """
+        path = self.closed_item.path()
+        polygon = path.toFillPolygon()  # QPolygonF
+
+        if polygon.isEmpty():
+            return QPolygonF()
+
+        # Appliquer transformation globale
+        transformed_polygon = self.sceneTransform().map(polygon)
+
+        # Simplification avec conservation du premier point
+        if tolerance > 0 and len(transformed_polygon) > 2:
+            simplified = QPolygonF()
+            first_point = transformed_polygon[0]
+            simplified.append(first_point)  # garder le premier point exact
+            prev_point = first_point
+
+            for pt in transformed_polygon[1:]:
+                if hypot(pt.x() - prev_point.x(), pt.y() - prev_point.y()) >= tolerance:
+                    simplified.append(pt)
+                    prev_point = pt
+
+            # Pas besoin de fermer arbitrairement : polygone déjà fermé
+            transformed_polygon = simplified
+
+        return transformed_polygon
+
+
+    def to_shapely_polygon(self, tolerance: float = 0.002):
+        """
+        Convertit le QPolygonF en shapely.geometry.Polygon.
+        Garantit que le premier point reste le même pour calculer un offset précis.
+        """
+        from shapely.geometry import Polygon
+
+        qpoly = self.to_polygon(tolerance)
+        if qpoly.isEmpty():
+            return Polygon()
+
+        coords = [(pt.x(), pt.y()) for pt in qpoly]
+        return Polygon(coords)
+
+

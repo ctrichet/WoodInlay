@@ -25,6 +25,7 @@ from PyQt5.QtCore import (
 )
 from core.svg_parser import parse_svg_or_group
 from core.duplication_manager import perform_unique_duplication
+from core.nesting_manager import NestingManager, NestingWorker
 from ui.svg_layer import SvgLayerWidget
 from ui.toolbar import CollapsibleToolbar
 from ui.image_layer import ImageLayerWidget
@@ -36,6 +37,9 @@ from ui.delegates import TreeItemHighlightDelegate
 from ui.tab_bar import CustomTabBar
 from utils.debug import debug_log
 
+
+from PyQt5.QtGui import QPen, QColor
+from PyQt5.QtWidgets import QGraphicsRectItem
 
 class MainWindow(QMainWindow):
     _instance = None
@@ -142,6 +146,8 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+D"), self).activated.connect(self.duplicate_via_toolbar_or_shortcut)
         QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(self.export_active_layer_to_svg)
         QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(self.open_nesting_dialog)
+        QShortcut(QKeySequence("Ctrl+C"), self).activated.connect(self.stop_nesting)
+
 
     def init_svg_preview(self):
         # Vue miniature non interactive pour l'aperçu
@@ -475,7 +481,6 @@ class MainWindow(QMainWindow):
         if not target_path:
             return None  # Annulé
 
-        # Plus besoin de boucle ! ✅
         if target_path in self.image_layer_widgets:
             return target_path
 
@@ -602,21 +607,40 @@ class MainWindow(QMainWindow):
             item.setPos(new_pos)
             item.setRotation(item.rotation() + angle_degrees)
 
+
     def open_nesting_dialog(self):
-        if self.tabs.currentWidget() == self.svg_layer:
-            DarkMessageBox.information(self, "Info", "Le calepinage ne peut s’effectuer que sur un calque image.")
-
         dialog = NestingConfigDialog(self)
-        if dialog.exec_() != QDialog.Accepted:
-            return  # annulé
+        if dialog.exec_() == QDialog.Accepted:
+            config = dialog.get_config()
+            print("[DEBUG] Nesting config:", config)
+            layer = self.active_image_layer()
+            layer.worker = NestingWorker(config, layer)
+            layer.worker.nm.placement_signal.connect(layer.on_placement)
+            layer.worker.start()
+        return None
 
-        config = dialog.get_values()
-        selected = self.active_scene().selectedItems()
+    def stop_nesting(self):
+        layer = self.active_image_layer()
+        if hasattr(layer, 'worker'):
+            layer.worker.nm.stop()
+            DarkMessageBox.information(self, "Nesting", "Nesting interrompu par l'utilisateur.")
+        else:
+            debug_log("Aucun Nesting en cours sur le layer")
 
-        if not selected:
-            DarkMessageBox.information(self, "Info", "Aucun duplicata sélectionné pour le nesting.")
-            return
 
-        debug_log(f"[NESTING] Configuration : {config}")
-        self.perform_nesting(config, selected)
+    def active_image_layer(self):
+        """Retourne l’ImageLayerWidget actif si l’onglet courant est une image, None sinon."""
+        current_tab = self.tabs.currentWidget()
+        if current_tab is None:
+            return None
+
+        # Vérifie si current_tab est directement un ImageLayerWidget
+        if isinstance(current_tab, ImageLayerWidget):
+            return current_tab
+
+        # Sinon, cherche parmi ses enfants
+        for child in current_tab.findChildren(ImageLayerWidget):
+            return child
+
+        return None
 

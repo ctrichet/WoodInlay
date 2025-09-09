@@ -13,7 +13,7 @@ import os
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox, QFileDialog, QListView,
     QDoubleSpinBox, QComboBox, QPushButton, QDialogButtonBox,QTreeView,
-    QLineEdit, QMessageBox,
+    QLineEdit, QMessageBox, QCheckBox,
 )
 from PyQt5.QtGui import QPalette, QColor
 from PyQt5.QtCore import Qt
@@ -23,93 +23,94 @@ from .delegates import ColorBackgroundDelegate
 class NestingConfigDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Configuration du Nesting")
-        layout = QVBoxLayout(self)
+        self.setWindowTitle("Nesting Configuration")
 
-        # Espacement
-        h_spacing = QHBoxLayout()
-        h_spacing.addWidget(QLabel("Espacement (mm):"))
+        layout = QVBoxLayout()
+
+        # Espacement entre pièces
         self.spacing_spin = QDoubleSpinBox()
         self.spacing_spin.setRange(0, 100)
         self.spacing_spin.setValue(2.0)
-        h_spacing.addWidget(self.spacing_spin)
-        layout.addLayout(h_spacing)
+        self.spacing_spin.setSuffix(" mm")
+        layout.addWidget(QLabel("Espacement entre pièces :"))
+        layout.addWidget(self.spacing_spin)
 
-        # Marges
-        h_margin = QHBoxLayout()
-        h_margin.addWidget(QLabel("Marge (mm):"))
+        # Marges (bin border)
         self.margin_spin = QDoubleSpinBox()
         self.margin_spin.setRange(0, 100)
-        self.margin_spin.setValue(10.0)
-        h_margin.addWidget(self.margin_spin)
-        layout.addLayout(h_margin)
+        self.margin_spin.setValue(5.0)
+        self.margin_spin.setSuffix(" mm")
+        layout.addWidget(QLabel("Marge avec le bord du bin :"))
+        layout.addWidget(self.margin_spin)
 
-        # Optimisation
-        h_opt = QHBoxLayout()
-        h_opt.addWidget(QLabel("Optimisation:"))
-        self.optimization_combo = QComboBox()
-        self.optimization_combo.addItems(["gravity", "bounding box"])
-        h_opt.addWidget(self.optimization_combo)
-        layout.addLayout(h_opt)
+        # Rotations autorisées
+        self.rotation_combo = QComboBox()
+        self.rotation_combo.addItems([
+            "Pas de rotation",
+            "90°",
+            "180°",
+            "Libre (15° pas)",
+            "Libre (5° pas)"
+        ])
+        layout.addWidget(QLabel("Rotations autorisées :"))
+        layout.addWidget(self.rotation_combo)
 
-        # Rotation
-        h_rot = QHBoxLayout()
-        h_rot.addWidget(QLabel("Pas de rotation:"))
-        self.rotation_spin = QSpinBox()
-        self.rotation_spin.setRange(1, 360)
-        self.rotation_spin.setValue(90)
-        h_rot.addWidget(self.rotation_spin)
-        layout.addLayout(h_rot)
-
-        # Approximation
-        h_approx = QHBoxLayout()
-        h_approx.addWidget(QLabel("Approximation:"))
-        self.approx_spin = QSpinBox()
-        self.approx_spin.setRange(1, 100)
-        self.approx_spin.setValue(10)
-        h_approx.addWidget(self.approx_spin)
-        layout.addLayout(h_approx)
-
-        # Population
-        h_pop = QHBoxLayout()
-        h_pop.addWidget(QLabel("Population:"))
+        # Population size
         self.population_spin = QSpinBox()
         self.population_spin.setRange(1, 1000)
-        self.population_spin.setValue(100)
-        h_pop.addWidget(self.population_spin)
-        layout.addLayout(h_pop)
+        self.population_spin.setValue(20)
+        layout.addWidget(QLabel("Taille de la population :"))
+        layout.addWidget(self.population_spin)
 
-        # Mutation
-        h_mut = QHBoxLayout()
-        h_mut.addWidget(QLabel("Taux de mutation:"))
+        # Mutation rate
         self.mutation_spin = QDoubleSpinBox()
-        self.mutation_spin.setRange(0, 1)
+        self.mutation_spin.setRange(0.0, 1.0)
         self.mutation_spin.setSingleStep(0.05)
-        self.mutation_spin.setValue(0.8)
-        h_mut.addWidget(self.mutation_spin)
-        layout.addLayout(h_mut)
+        self.mutation_spin.setValue(0.1)
+        layout.addWidget(QLabel("Taux de mutation :"))
+        layout.addWidget(self.mutation_spin)
 
-        # Boutons
-        btns = QHBoxLayout()
-        ok_btn = QPushButton("Lancer")
-        ok_btn.clicked.connect(self.accept)
-        cancel_btn = QPushButton("Annuler")
-        cancel_btn.clicked.connect(self.reject)
-        btns.addWidget(ok_btn)
-        btns.addWidget(cancel_btn)
-        layout.addLayout(btns)
+        # Type d’optimisation
+        self.optimization_combo = QComboBox()
+        self.optimization_combo.addItems([
+            "Gravity (compact)",
+            "Bounding box"
+        ])
+        layout.addWidget(QLabel("Type d’optimisation :"))
+        layout.addWidget(self.optimization_combo)
+
+        # Approximation des formes
+        self.tolerance_spin = QDoubleSpinBox()
+        self.tolerance_spin.setRange(0, 10)
+        self.tolerance_spin.setValue(0.5)
+        self.tolerance_spin.setSuffix(" px")
+        layout.addWidget(QLabel("Tolérance d’approximation des formes :"))
+        layout.addWidget(self.tolerance_spin)
+
+        # Autoriser le miroir
+        self.mirror_check = QCheckBox("Autoriser les symétries (flip/mirror)")
+        layout.addWidget(self.mirror_check)
+
+        # Boutons OK / Annuler
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+        self.setLayout(layout)
 
     def get_config(self):
         return {
-            "spacing_mm": self.spacing_spin.value(),
-            "margin_mm": self.margin_spin.value(),
-            "optimization": self.optimization_combo.currentText(),
-            "rotation_step": self.rotation_spin.value(),
-            "rotations": list(range(0, 360, self.rotation_spin.value())),
-            "approximation": self.approx_spin.value(),
+            "spacing": self.spacing_spin.value(),
+            "margin": self.margin_spin.value(),
+            "rotation": self.rotation_combo.currentText(),
             "population": self.population_spin.value(),
-            "mutation_rate": self.mutation_spin.value()
+            "mutation": self.mutation_spin.value(),
+            "optimization": self.optimization_combo.currentText(),
+            "tolerance": self.tolerance_spin.value(),
+            "allow_mirror": self.mirror_check.isChecked(),
         }
+
 
 
 class BackgroundSelectionDialog(QDialog):

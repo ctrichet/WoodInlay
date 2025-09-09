@@ -9,7 +9,9 @@
 #|                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QToolButton
+)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize
 
@@ -21,32 +23,40 @@ class CollapsibleToolbar(QWidget):
 
         self.content_widget = QWidget()
         layout = QVBoxLayout(self.content_widget)
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.setSpacing(10)
+        layout.setContentsMargins(0, 5, 0, 5)
+        layout.setSpacing(2)
+        self.content_widget.setStyleSheet("""
+            background-color: #353535;
+            border-radius: 4px;
+        """)
 
-        duplicate_icon = QIcon("../../icons/duplicate.svg")
+        duplicate_icon = QIcon("./icons/duplicate.svg")
         self.duplicate_btn = QPushButton()
         self.duplicate_btn.setIcon(duplicate_icon)
         self.duplicate_btn.setIconSize(QSize(24, 24))
         self.duplicate_btn.setFlat(True)
         layout.addWidget(self.duplicate_btn)
 
-        zoom_in_icon = QIcon("../../icons/zoom_in.svg")
+        zoom_in_icon = QIcon("./icons/zoom_in.svg")
         self.zoom_in_btn = QPushButton()
         self.zoom_in_btn.setIcon(zoom_in_icon)
         self.zoom_in_btn.setIconSize(QSize(24, 24))
         self.zoom_in_btn.setFlat(True)
         layout.addWidget(self.zoom_in_btn)
 
-        zoom_out_icon = QIcon("../../icons/zoom_out.svg")
+        zoom_out_icon = QIcon("./icons/zoom_out.svg")
         self.zoom_out_btn = QPushButton()
         self.zoom_out_btn.setIcon(zoom_out_icon)
         self.zoom_out_btn.setIconSize(QSize(24, 24))
         self.zoom_out_btn.setFlat(True)
         layout.addWidget(self.zoom_out_btn)
 
-        self.toggle_btn = QPushButton("⯈")
-        self.toggle_btn.setFixedWidth(20)
+
+        handle_icon = QIcon("./icons/handle.svg")
+        self.toggle_btn = QToolButton()
+        self.toggle_btn.setIcon(handle_icon)
+        self.toggle_btn.setFixedWidth(10)
+        self.toggle_btn.setStyleSheet("padding: 0; margin: 0;")
         self.toggle_btn.clicked.connect(self.toggle_collapsed)
 
         main_layout = QHBoxLayout(self)

@@ -68,6 +68,10 @@ class ImageLayerWidget(QWidget):
         elif image_path:
                 self.load_image(image_path)
 
+    def on_placement(self, idx, rot, dx, dy):
+        # Ceci est exécuté dans le thread principal, safe pour Qt
+        self.worker.nm.apply_placement(idx, rot, dx, dy)
+
     def load_image(self, path):
         pixmap = QPixmap(path)
         if pixmap.isNull():

@@ -9,17 +9,18 @@
 #|                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 
-from .nesting import Individual, NestingEngine, approximate_polygon
+from .nesting_manager import NestingManager
 from .model_items import PathItem, CompositeGroupItem, GroupItem, DuplicataGroupItem
 from .svg_parser import parse_svg_or_group
 from .duplication_manager import perform_unique_duplication
+from .nesting_manager import NestingManager, NestingWorker
 __all__ = [
-    "Individual",
-    "NestingEngine",
-    "approximate_polygon",
     "PathItem",
     "CompositeGroupItem",
     "GroupItem",
     "DuplicataGroupItem",
+    "parse_svg_or_group",
     "perform_unique_duplication",
+    "NestingManager",
+    "NestingWorker",
 ]

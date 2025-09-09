@@ -13,7 +13,7 @@ import inspect
 
 DEBUG = True
 
-def debug_log(message):
+def debug_log(message=""):
     """Affiche un message de debug avec nom de fonction et numéro de ligne."""
     if not DEBUG:
         return
