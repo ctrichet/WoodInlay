@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QPainter, QColor, QBrush, QPen
 from PyQt5.QtCore import QSize
 
-from ui.dialogs import DarkFileDialog
+from ui.dialogs import DarkFileDialog, DarkMessageBox
 
 from utils.debug import debug_log
 
@@ -72,8 +72,20 @@ class CustomTabBar(QTabBar):
 
         if dialog.exec_() == QDialog.Accepted:
             files = dialog.selectedFiles()
-            for f in files:
+
+            # ⚡ Filtrer les fichiers déjà ouverts
+            files_to_open = [
+                f for f in files
+                if f not in CustomTabBar._window.image_layer_widgets
+            ]
+
+            if not files_to_open:
+                DarkMessageBox.information(self, "Info", "Tous les fichiers sélectionnés sont déjà ouverts.")
+                return
+
+            for f in files_to_open:
                 CustomTabBar._window.load_image_layer(f)
+
 
     def paintEvent(self, event):
         painter = QPainter(self)

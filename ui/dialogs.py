@@ -136,7 +136,7 @@ class BackgroundSelectionDialog(QDialog):
         current_color = self.layer_colors[0]  # ← correspond à la première couleur
         palette = self.combo.palette()
         palette.setColor(QPalette.Base, current_color)
-        palette.setColor(QPalette.Button, current_color)  # parfois nécessaire selon le style Qt
+        palette.setColor(QPalette.Button, current_color)
         self.combo.setPalette(palette)
 
         # Appliquer le délégué personnalisé pour la coloration de fond

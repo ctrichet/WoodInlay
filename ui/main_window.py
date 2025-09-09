@@ -15,14 +15,16 @@ from math import radians, cos, sin
 
 from PyQt5.QtWidgets import (
     QMainWindow, QTreeWidget, QTreeWidgetItem, QTabWidget, QDialog, QFileDialog,
-    QGraphicsView, QWidget, QHBoxLayout, QVBoxLayout, QShortcut,
+    QGraphicsView, QWidget, QHBoxLayout, QVBoxLayout, QShortcut, QTabBar,
+    QStyle, QToolButton,
 )
 from PyQt5.QtGui import (
-    QColor, QKeySequence, QPixmap, QImage, QPalette, QBrush
+    QColor, QKeySequence, QPixmap, QImage, QPalette, QBrush,
 )
 from PyQt5.QtCore import (
     Qt, QPointF,
 )
+from core.model_items import DuplicataGroupItem
 from core.svg_parser import parse_svg_or_group
 from core.duplication_manager import perform_unique_duplication
 from core.nesting_manager import NestingManager, NestingWorker
@@ -256,17 +258,27 @@ class MainWindow(QMainWindow):
 
         self.tabs.tabBar().set_tab_color(index, layer_widget.margin_color)
 
+                # 🔹 Ajout d’un bouton de fermeture uniquement pour les onglets image
+        close_btn = QToolButton()
+        close_btn.setIcon(self.style().standardIcon(QStyle.SP_TitleBarCloseButton))
+        close_btn.setAutoRaise(True)
+        close_btn.clicked.connect(lambda _, i=index: self.close_tab(i))
+        self.tabs.tabBar().setTabButton(index, QTabBar.RightSide, close_btn)
+
         print(f"[INFO] 🟢 Onglet ajouté : {tab_name} (image_path {image_path})")
 
     def load_svg_layer(self, file_path):
         # Créer l'objet SvgLayerWidget
         self.svg_layer = SvgLayerWidget.get_instance(file_path)
 
-        # Ajouter un onglet dans les tabs pour la couche SVG
+        # Ajouter un onglet pour la couche SVG
         self.tabs.addTab(self.svg_layer, "SVG Layer")
 
         # Couleur grise personnalisée
         self.colored_tabbar.set_tab_color(0, QColor(45, 45, 45))
+
+        # ❌ Enlever la croix sur le tab SVG
+        self.tabs.tabBar().setTabButton(0, QTabBar.RightSide, None)
 
 
     def render_pdf_to_pixmap(self, pdf_path, page_number=0, dpi=300):
@@ -464,6 +476,44 @@ class MainWindow(QMainWindow):
         # Exécution de la duplication
         perform_unique_duplication(selected_items, target_view, self)
         debug_log("END")
+
+    def close_tab(self, index):
+        """Ferme uniquement un onglet image et supprime ses duplicatas associés"""
+        widget = self.tabs.widget(index)
+
+        # Retrouver l'image_layer_widget associé
+        image_layer_widget = self.image_layers.get(widget)
+        if not image_layer_widget:
+            debug_log("❌ Impossible de retrouver le layer à fermer")
+            return
+
+        # 1️⃣ Supprimer les duplicatas et leurs masques
+        duplicatas = [item for item in image_layer_widget.scene.items() if isinstance(item, DuplicataGroupItem)]
+
+        for dup in duplicatas:
+            # Supprimer le masque associé de la scène SVG
+            if dup.mask_item and dup.mask_item.scene():
+                dup.mask_item.scene().removeItem(dup.mask_item)
+                dup.mask_item = None
+
+            # Supprimer le duplicata de la scène image
+            if dup.scene():
+                dup.scene().removeItem(dup)
+
+        debug_log(f"🗑️ Supprimé {len(duplicatas)} duplicata(s) liés à {image_layer_widget.image_path}")
+
+        # 2️⃣ Nettoyer les références dans les dictionnaires
+        image_path = next((p for p, w in self.image_layer_widgets.items() if w == image_layer_widget), None)
+        if image_path:
+            self.image_layer_widgets.pop(image_path, None)
+
+        self.image_layers.pop(widget, None)
+
+        # 3️⃣ Supprimer l’onglet
+        self.tabs.removeTab(index)
+        widget.deleteLater()
+
+        debug_log(f"🗑️ Onglet fermé : {image_path}")
 
     def open_background_selection_dialog(self):
         selected = self.svg_layer.scene.selectedItems()
