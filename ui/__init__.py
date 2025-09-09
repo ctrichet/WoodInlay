@@ -19,9 +19,11 @@ from .dialogs import (
 )
 from .tab_bar import CustomTabBar
 from .delegates import ColorBackgroundDelegate, TreeItemHighlightDelegate
+from .layer import LayerWidget
 
 __all__ = [
     "MainWindow",
+    "LayerWidget"
     "SvgLayerWidget",
     "ImageLayerWidget",
     "ZoomableView",

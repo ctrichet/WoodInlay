@@ -30,6 +30,7 @@ from core.duplication_manager import perform_unique_duplication
 from core.nesting_manager import NestingManager, NestingWorker
 from ui.svg_layer import SvgLayerWidget
 from ui.toolbar import CollapsibleToolbar
+from ui.layer import LayerWidget
 from ui.image_layer import ImageLayerWidget
 from ui.dialogs import (
     NestingConfigDialog, BackgroundSelectionDialog, DarkFileDialog,
@@ -73,11 +74,8 @@ class MainWindow(QMainWindow):
         # Dictionnaires
         self.image_layers = {}
         self.image_layer_widgets = {}
-        self.tree_items_by_id = {}
-        self.group_items_by_id = {}
 
         # Widgets
-        self.init_tree_widget()
         self.init_svg_preview()
 
         # Tabs
@@ -85,6 +83,16 @@ class MainWindow(QMainWindow):
         self.colored_tabbar = CustomTabBar()
         self.tabs.setTabBar(self.colored_tabbar)
         self.tabs.currentChanged.connect(self.on_tab_changed)
+
+        # SVG Layer (doit exister avant on_tab_changed)
+        svg_file = choose_svg_file()
+        self.load_svg_layer(svg_file)
+        self.layer = self.svg_layer
+        self.tree = self.layer.tree
+        parse_svg_or_group(svg_file, self)
+        self.svg_preview.setScene(self.svg_layer.scene)
+
+        self.init_connections()
 
         self.init_layout()
 
@@ -94,13 +102,6 @@ class MainWindow(QMainWindow):
         container.setPalette(self.init_palette())
         container.setLayout(self.layout)
         self.setCentralWidget(container)
-
-        # SVG Layer (doit exister avant on_tab_changed)
-        svg_file = choose_svg_file()
-        self.load_svg_layer(svg_file)
-        parse_svg_or_group(svg_file, self)
-        self.svg_preview.setScene(self.svg_layer.scene)
-        self.init_connections()
 
         # Toolbar
         self.toolbar = CollapsibleToolbar(
@@ -131,11 +132,11 @@ class MainWindow(QMainWindow):
         return palette
 
     def init_layout(self):
-        right_layout = QVBoxLayout()
-        right_layout.addWidget(self.svg_preview)
-        right_layout.addWidget(self.tree)
+        self.right_layout = QVBoxLayout()
+        self.right_layout.addWidget(self.svg_preview)
+        self.right_layout.addWidget(self.tree)
         right_widget = QWidget()
-        right_widget.setLayout(right_layout)
+        right_widget.setLayout(self.right_layout)
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.tabs, 4)
         main_layout.addWidget(right_widget, 1)
@@ -143,7 +144,7 @@ class MainWindow(QMainWindow):
 
     def init_connections(self):
         self.tree.itemSelectionChanged.connect(self.sync_tree_to_scene)
-        self.svg_layer.scene.selectionChanged.connect(self.sync_scene_to_tree)
+        self.layer.scene.selectionChanged.connect(self.sync_scene_to_tree)
 
         QShortcut(QKeySequence("Ctrl+D"), self).activated.connect(self.duplicate_via_toolbar_or_shortcut)
         QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(self.export_active_layer_to_svg)
@@ -165,12 +166,27 @@ class MainWindow(QMainWindow):
         svg_preview.hide()  # masquée par défaut
         self.svg_preview = svg_preview
 
-    def init_tree_widget(self):
-        tree = QTreeWidget()
-        tree.setHeaderLabels(["Éléments SVG"])
-        tree.setMinimumWidth(200)
-        tree.setItemDelegate(TreeItemHighlightDelegate())
-        self.tree = tree
+    def add_svg_item(self, item, parent_tree_item=None):
+        # Ajout à la scène via SvgLayerWidget
+        self.svg_layer.items_by_id[item.element_id] = item
+        self.svg_layer.add_to_scene(item)
+
+        # Création du nœud dans l'arborescence
+        tree_parent = parent_tree_item or self.tree.invisibleRootItem()
+        tree_item = QTreeWidgetItem(tree_parent)
+        tree_item.setText(0, item.element_id)
+        tree_item.setData(0, Qt.UserRole, item.element_id)
+        self.svg_layer.tree_items_by_id[item.element_id]  = tree_item
+        self.svg_layer.items_by_id[item.element_id] = item
+
+    def add_group_to_tree(self, group_id, parent_tree_item=None):
+        parent = parent_tree_item or self.tree.invisibleRootItem()
+        group_item = QTreeWidgetItem(parent)
+        group_item.setText(0, group_id)
+        group_item.setData(0, Qt.UserRole, group_id)
+
+        self.layer.tree_items_by_id[group_id] = group_item
+        return group_item
 
     def active_scene(self):
         current_tab = self.tabs.currentWidget()
@@ -224,6 +240,8 @@ class MainWindow(QMainWindow):
 
         # 🎯 Création du widget calque image
         layer_widget = ImageLayerWidget(image_path=image_path, pixmap=pixmap)
+        self.right_layout.addWidget(layer_widget.tree)
+        layer_widget.tree.hide()
 
         # 🔶 Cadre extérieur coloré (bordure)
         color = layer_widget.margin_color.name()
@@ -314,28 +332,6 @@ class MainWindow(QMainWindow):
             return None
 
 
-    def add_group_to_tree(self, group_id, parent_tree_item=None):
-        parent = parent_tree_item or self.tree.invisibleRootItem()
-        group_item = QTreeWidgetItem(parent)
-        group_item.setText(0, group_id)
-        group_item.setData(0, Qt.UserRole, group_id)
-
-        self.tree_items_by_id[group_id] = group_item
-        return group_item
-
-    def add_svg_item(self, item, parent_tree_item=None):
-        # Ajout à la scène via SvgLayerWidget
-        self.svg_layer.items_map[item.element_id] = item
-        self.svg_layer.add_to_scene(item)
-
-        # Création du nœud dans l'arborescence
-        tree_parent = parent_tree_item or self.tree.invisibleRootItem()
-        tree_item = QTreeWidgetItem(tree_parent)
-        tree_item.setText(0, item.element_id)
-        tree_item.setData(0, Qt.UserRole, item.element_id)
-        self.tree_items_by_id[item.element_id]  = tree_item
-        self.group_items_by_id[item.element_id] = item
-
     def get_current_view(self):
         current_widget = self.tabs.currentWidget()
         if isinstance(current_widget, SvgLayerWidget):
@@ -365,28 +361,41 @@ class MainWindow(QMainWindow):
         self.svg_preview.fitInView(scene_rect, Qt.KeepAspectRatio)
 
     def on_tab_changed(self, index):
-        widget = self.tabs.widget(index)
-        if widget == self.svg_layer:
+        self.layer.tree.hide()
+        layer = self.get_layer_widget_from_tab(self.tabs.widget(index))
+        self.layer = layer
+        layer.tree.show()
+        if isinstance(layer, SvgLayerWidget):
             self.svg_preview.hide()
         else:
             self.update_svg_preview()
             self.svg_preview.show()
 
+    def get_layer_widget_from_tab(self, tab_widget):
+        """Renvoie l'ImageLayerWidget contenu dans l'onglet, ou None si introuvable."""
+        if isinstance(tab_widget, LayerWidget):
+            return tab_widget
+        # Cherche parmi les enfants
+        for child in tab_widget.findChildren(LayerWidget):
+            return child
+        return None
+
+
     def sync_scene_to_tree(self):
         """Synchronise la sélection dans la scène vers l’arbre."""
-        self.tree.blockSignals(True)
-        self.tree.clearSelection()
+        self.layer.tree.blockSignals(True)
+        self.layer.tree.clearSelection()
 
-        for item in self.svg_layer.scene.selectedItems():
-            tree_item = self.tree_items_by_id.get(item.element_id)
+        for item in self.layer.scene.selectedItems():
+            tree_item = self.layer.tree_items_by_id.get(item.element_id)
             if tree_item:
                 tree_item.setSelected(True)
 
         self.tree.blockSignals(False)
 
     def sync_tree_to_scene(self):
-        selected_tree_items = self.tree.selectedItems()
-        scene = self.svg_layer.scene
+        selected_tree_items = self.layer.tree.selectedItems()
+        scene = self.layer.scene
 
         # ⏸️ Bloque temporairement les signaux
         scene.blockSignals(True)
@@ -396,7 +405,7 @@ class MainWindow(QMainWindow):
             ids = []
             if tree_item.childCount() == 0:
                 element_id = tree_item.data(0, Qt.UserRole)
-                if element_id in self.group_items_by_id:
+                if element_id in self.layer.items_by_id:
                     ids.append(element_id)
             else:
                 for i in range(tree_item.childCount()):
@@ -407,16 +416,16 @@ class MainWindow(QMainWindow):
         for tree_item in selected_tree_items:
             leaf_ids = collect_leaf_ids(tree_item)
             all_selected = all(
-                self.group_items_by_id.get(id_).isSelected()
-                for id_ in leaf_ids if id_ in self.group_items_by_id
+                self.layer.items_by_id.get(id_).isSelected()
+                for id_ in leaf_ids if id_ in self.layer.items_by_id
             )
 
             # Étape 3 – toggle sélection dans la scène
             for id_ in leaf_ids:
-                group_item = self.group_items_by_id.get(id_)
-                if not group_item:
+                item = self.items_by_id.get(id_)
+                if not item:
                     continue
-                group_item.setSelected(not all_selected)  # toggle selon état global
+                item.setSelected(not all_selected)  # toggle selon état global
 
         scene.blockSignals(False)
 
@@ -464,7 +473,6 @@ class MainWindow(QMainWindow):
                 debug_log("END")
                 return
 
-            target_view = target_layer_widget.view
             debug_log(f"✅ Duplication directe sur le calque actif $ {target_path}")
 
         else:
@@ -474,7 +482,7 @@ class MainWindow(QMainWindow):
             return
 
         # Exécution de la duplication
-        perform_unique_duplication(selected_items, target_view, self)
+        perform_unique_duplication(selected_items, target_layer_widget, self)
         debug_log("END")
 
     def close_tab(self, index):
@@ -536,66 +544,6 @@ class MainWindow(QMainWindow):
 
         DarkMessageBox.warning(self, "Erreur", "Calque image introuvable.")
         return None
-
-    def apply_tree_item_color(self, tree_item, bg_filename):
-        # Trouve le calque image correspondant à ce nom de fichier
-        image_path = next(
-            (path for path in self.image_layer_widgets if os.path.basename(path) == bg_filename),
-            None
-        )
-
-        if image_path is None:
-            print(f"[WARNING] Aucun calque image trouvé pour {bg_filename}")
-            return
-
-        layer_widget = self.image_layer_widgets[image_path]
-        color = layer_widget.margin_color
-
-        for col in range(tree_item.columnCount()):
-            tree_item.setBackground(col, color)
-
-        # Si parent, essaye aussi de colorer le groupe
-        parent = tree_item.parent()
-        if parent:
-            self.apply_group_item_color(parent)
-
-    def apply_group_item_color(self, group_item) -> Optional[QColor]:
-        """Colorie le groupe si tous ses enfants directs ont une couleur (identique ou non).
-        Retourne la couleur appliquée ou None si aucune."""
-        if group_item.childCount() == 0:
-            return None  # Ce n'est pas un groupe
-
-        child_colors = set()
-
-        for i in range(group_item.childCount()):
-            child = group_item.child(i)
-
-            # Récupérer la couleur de l'enfant
-            if child.childCount() > 0:
-                # Enfant est un groupe → on suppose qu’il est déjà coloré
-                brush = child.background(0)
-                if brush.style() != Qt.NoBrush:
-                    child_colors.add(brush.color().name())
-                else:
-                    return None  # Enfant groupe non encore coloré → on arrête ici
-            else:
-                # Enfant normal
-                brush = child.background(0)
-                if brush.style() != Qt.NoBrush:
-                    child_colors.add(brush.color().name())
-                else:
-                    return None  # Un enfant non coloré → le groupe ne l’est pas
-
-        # Si tous les enfants sont colorés
-        if len(child_colors) == 1:
-            final_color = QColor(list(child_colors)[0])
-        else:
-            final_color = QColor("#888888")  # Couleur pour duplication multiple
-
-        for col in range(group_item.columnCount()):
-            group_item.setBackground(col, final_color)
-
-        return final_color
 
     def color_tree_selection(self):
         def apply_color_recursive(tree_item, color):
@@ -670,9 +618,8 @@ class MainWindow(QMainWindow):
         return None
 
     def stop_nesting(self):
-        layer = self.active_image_layer()
-        if hasattr(layer, 'worker'):
-            layer.worker.nm.stop()
+        if hasattr(self.layer, 'worker'):
+            self.layer.worker.nm.stop()
             DarkMessageBox.information(self, "Nesting", "Nesting interrompu par l'utilisateur.")
         else:
             debug_log("Aucun Nesting en cours sur le layer")
@@ -694,3 +641,62 @@ class MainWindow(QMainWindow):
 
         return None
 
+    def apply_tree_item_color(self, tree_item, bg_filename):
+        # Trouve le calque image correspondant à ce nom de fichier
+        image_path = next(
+            (path for path in self.image_layer_widgets if os.path.basename(path) == bg_filename),
+            None
+        )
+
+        if image_path is None:
+            print(f"[WARNING] Aucun calque image trouvé pour {bg_filename}")
+            return
+
+        layer_widget = self.image_layer_widgets[image_path]
+        color = layer_widget.margin_color
+
+        for col in range(tree_item.columnCount()):
+            tree_item.setBackground(col, color)
+
+        # Si parent, essaye aussi de colorer le groupe
+        parent = tree_item.parent()
+        if parent:
+            self.apply_group_item_color(parent)
+
+    def apply_group_item_color(self, group_item) -> Optional[QColor]:
+        """Colorie le groupe si tous ses enfants directs ont une couleur (identique ou non).
+        Retourne la couleur appliquée ou None si aucune."""
+        if group_item.childCount() == 0:
+            return None  # Ce n'est pas un groupe
+
+        child_colors = set()
+
+        for i in range(group_item.childCount()):
+            child = group_item.child(i)
+
+            # Récupérer la couleur de l'enfant
+            if child.childCount() > 0:
+                # Enfant est un groupe → on suppose qu’il est déjà coloré
+                brush = child.background(0)
+                if brush.style() != Qt.NoBrush:
+                    child_colors.add(brush.color().name())
+                else:
+                    return None  # Enfant groupe non encore coloré → on arrête ici
+            else:
+                # Enfant normal
+                brush = child.background(0)
+                if brush.style() != Qt.NoBrush:
+                    child_colors.add(brush.color().name())
+                else:
+                    return None  # Un enfant non coloré → le groupe ne l’est pas
+
+        # Si tous les enfants sont colorés
+        if len(child_colors) == 1:
+            final_color = QColor(list(child_colors)[0])
+        else:
+            final_color = QColor("#888888")  # Couleur pour duplication multiple
+
+        for col in range(group_item.columnCount()):
+            group_item.setBackground(col, final_color)
+
+        return final_color

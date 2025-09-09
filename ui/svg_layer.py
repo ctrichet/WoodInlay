@@ -10,13 +10,16 @@
 #############################################################   ':::::::'   ####
 
 import os
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGraphicsScene
+from PyQt5.QtWidgets import(
+    QWidget, QVBoxLayout, QGraphicsScene, QTreeWidget,
+)
 from PyQt5.QtSvg import QSvgRenderer, QGraphicsSvgItem
 from PyQt5.QtGui import QPainter
 from utils.debug import debug_log
-from .views import ZoomableView
+from ui.layer import LayerWidget
+from ui.delegates import TreeItemHighlightDelegate
 
-class SvgLayerWidget(QWidget):
+class SvgLayerWidget(LayerWidget):
     _instance = None
 
     @staticmethod
@@ -38,10 +41,7 @@ class SvgLayerWidget(QWidget):
 
     def __init__(self, file_path):
         super().__init__()
-        self.items_map = {}
-        self.scene = QGraphicsScene()
-        self.view = ZoomableView(self.scene)
-        self.view.setRenderHint(QPainter.Antialiasing)
+
         layout = QVBoxLayout()
         layout.addWidget(self.view)
         self.setLayout(layout)

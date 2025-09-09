@@ -12,19 +12,19 @@
 import os
 import xml.etree.ElementTree as ET
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QGraphicsScene, QFileDialog, QDialog
+    QWidget, QVBoxLayout, QFileDialog, QDialog,
 )
 from PyQt5.QtGui import QPixmap, QPainter, QColor
 from PyQt5.QtCore import QRectF, Qt
 
-from .views import ZoomableView
 from core.model_items import DuplicataGroupItem
 from ui.dialogs import DarkFileDialog, DarkMessageBox
+from ui.layer import LayerWidget
 
 from utils.debug import debug_log
 
 
-class ImageLayerWidget(QWidget):
+class ImageLayerWidget(LayerWidget):
     _color_step = 0
 
     @staticmethod
@@ -47,7 +47,6 @@ class ImageLayerWidget(QWidget):
         super().__init__()
         self.margin_color = ImageLayerWidget.next_margin_color()
         self.image_path = image_path
-        self.scene = QGraphicsScene()
         self.scene.name = image_path
         original_addItem = self.scene.addItem
         self.scene.addItem = lambda item: (
@@ -55,8 +54,6 @@ class ImageLayerWidget(QWidget):
             original_addItem(item)
         )[1]
 
-        self.view = ZoomableView(self.scene)
-        self.view.setRenderHint(QPainter.Antialiasing)
         self.background_pixmap = None
 
         layout = QVBoxLayout()
