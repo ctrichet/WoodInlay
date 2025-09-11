@@ -16,7 +16,10 @@ from ui.tab_bar import CustomTabBar
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")  # dans ton main.py avant la création de MainWindow
+
     window = MainWindow()
+    app.setPalette(window.init_palette())  # ta palette sombre
 
     CustomTabBar._window = window
     window.show()

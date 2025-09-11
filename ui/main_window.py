@@ -16,13 +16,13 @@ from math import radians, cos, sin
 from PyQt5.QtWidgets import (
     QMainWindow, QTreeWidget, QTreeWidgetItem, QTabWidget, QDialog, QFileDialog,
     QGraphicsView, QWidget, QHBoxLayout, QVBoxLayout, QShortcut, QTabBar,
-    QStyle, QToolButton,
+    QStyle, QToolButton, QDockWidget,
 )
 from PyQt5.QtGui import (
     QColor, QKeySequence, QPixmap, QImage, QPalette, QBrush,
 )
 from PyQt5.QtCore import (
-    Qt, QPointF,
+    Qt, QPointF, QEvent, QTimer,
 )
 from core.model_items import DuplicataGroupItem
 from core.svg_parser import parse_svg_or_group
@@ -32,6 +32,7 @@ from ui.svg_layer import SvgLayerWidget
 from ui.toolbar import CollapsibleToolbar
 from ui.layer import LayerWidget
 from ui.image_layer import ImageLayerWidget
+from ui.svg_preview import PreviewDock
 from ui.dialogs import (
     NestingConfigDialog, BackgroundSelectionDialog, DarkFileDialog,
     DarkMessageBox,
@@ -76,7 +77,7 @@ class MainWindow(QMainWindow):
         self.image_layer_widgets = {}
 
         # Widgets
-        self.init_svg_preview()
+
 
         # Tabs
         self.tabs = QTabWidget()
@@ -89,12 +90,13 @@ class MainWindow(QMainWindow):
         self.load_svg_layer(svg_file)
         self.layer = self.svg_layer
         self.tree = self.layer.tree
+
         parse_svg_or_group(svg_file, self)
-        self.svg_preview.setScene(self.svg_layer.scene)
 
         self.init_connections()
-
-        self.init_layout()
+        self.init_preview_dock()
+        self.init_tree_dock()
+        self.init_main_layout()
 
         # Central widget
         container = QWidget()
@@ -131,16 +133,63 @@ class MainWindow(QMainWindow):
         palette.setColor(QPalette.Window, QColor(35, 35, 35))
         return palette
 
-    def init_layout(self):
-        self.right_layout = QVBoxLayout()
-        self.right_layout.addWidget(self.svg_preview)
-        self.right_layout.addWidget(self.tree)
-        right_widget = QWidget()
-        right_widget.setLayout(self.right_layout)
+    def get_active_layer(self):
+        return self.layer
+
+    def init_main_layout(self):
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.tabs, 4)
-        main_layout.addWidget(right_widget, 1)
         self.layout = main_layout
+
+    def init_preview_dock(self):
+        svg_preview = QGraphicsView()
+        svg_preview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        svg_preview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # Désactive interaction utilisateur
+        svg_preview.setInteractive(False)
+        svg_preview.setDragMode(QGraphicsView.NoDrag)
+        svg_preview.setFocusPolicy(Qt.NoFocus)
+        svg_preview.setScene(self.svg_layer.scene)
+        svg_preview.setStyleSheet("""
+            QGraphicsView {
+                background-color: #232323;   /* fond du QGraphicsView */
+                border: none;
+            }
+        """)
+        svg_preview.viewport().setStyleSheet("background-color: #232323;")
+        svg_preview.fitInView(svg_preview.scene().sceneRect(), Qt.KeepAspectRatio)
+
+        self.preview_dock = PreviewDock("SVG Preview", self, layer_getter=lambda: self.layer)
+        self.preview_dock.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
+        self.preview_dock.setWidget(svg_preview)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.preview_dock)
+        self.preview_dock.hide()
+
+    def init_tree_dock(self):
+        # Dans __init__ ou init_layout
+        self.tree_dock = QDockWidget(None, self)
+        self.tree_dock.setTitleBarWidget(QWidget())  # en remplaçant la titlebar par un widget vide
+        self.tree_dock.setAllowedAreas(Qt.RightDockWidgetArea)  # seulement à droite
+        self.tree_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)  # non détachable
+        self.tree_dock.setWidget(self.tree)
+        self.tree_dock.setStyleSheet("""
+            QDockWidget {
+                background-color: #232323;      /* gris foncé pour le dock */
+                titlebar-close-icon: url(none); /* optionnel: masquer le bouton fermer */
+                titlebar-normal-icon: url(none);
+            }
+            QDockWidget::title {
+                background-color: #353535;      /* barre de titre un peu plus claire */
+                text-align: center;
+                color: white;
+                padding: 2px;
+            }
+        """)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.tree_dock)
+
+        # Optionnel : fixer la largeur du tree
+        self.tree_dock.setFixedWidth(250)
+
 
     def init_connections(self):
         self.tree.itemSelectionChanged.connect(self.sync_tree_to_scene)
@@ -152,20 +201,6 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+C"), self).activated.connect(self.stop_nesting)
 
 
-    def init_svg_preview(self):
-        # Vue miniature non interactive pour l'aperçu
-        svg_preview = QGraphicsView()
-        svg_preview.setFixedHeight(150)  # hauteur de l'aperçu
-        svg_preview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        svg_preview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # Désactive interaction utilisateur
-        svg_preview.setInteractive(False)
-        svg_preview.setDragMode(QGraphicsView.NoDrag)
-        svg_preview.setFocusPolicy(Qt.NoFocus)
-        svg_preview.setStyleSheet("background: transparent; border: none;")
-        svg_preview.hide()  # masquée par défaut
-        self.svg_preview = svg_preview
-
     def add_svg_item(self, item, parent_tree_item=None):
         # Ajout à la scène via SvgLayerWidget
         self.svg_layer.items_by_id[item.element_id] = item
@@ -176,6 +211,7 @@ class MainWindow(QMainWindow):
         tree_item = QTreeWidgetItem(tree_parent)
         tree_item.setText(0, item.element_id)
         tree_item.setData(0, Qt.UserRole, item.element_id)
+
         self.svg_layer.tree_items_by_id[item.element_id]  = tree_item
         self.svg_layer.items_by_id[item.element_id] = item
 
@@ -240,8 +276,6 @@ class MainWindow(QMainWindow):
 
         # 🎯 Création du widget calque image
         layer_widget = ImageLayerWidget(image_path=image_path, pixmap=pixmap)
-        self.right_layout.addWidget(layer_widget.tree)
-        layer_widget.tree.hide()
 
         # 🔶 Cadre extérieur coloré (bordure)
         color = layer_widget.margin_color.name()
@@ -353,23 +387,19 @@ class MainWindow(QMainWindow):
         if view:
             view.zoom_out()
 
-    def update_svg_preview(self):
-        if not self.svg_layer or not self.svg_layer.scene:
-            return
-
-        scene_rect = self.svg_layer.scene.sceneRect()
-        self.svg_preview.fitInView(scene_rect, Qt.KeepAspectRatio)
-
     def on_tab_changed(self, index):
         self.layer.tree.hide()
         layer = self.get_layer_widget_from_tab(self.tabs.widget(index))
         self.layer = layer
         layer.tree.show()
+        self.tree_dock.setWidget(layer.tree)
         if isinstance(layer, SvgLayerWidget):
-            self.svg_preview.hide()
+            if not self.preview_dock.isFloating():
+                self.preview_dock.hide()
         else:
-            self.update_svg_preview()
-            self.svg_preview.show()
+            if not self.preview_dock.isFloating():
+                self.preview_dock.show()
+                self.preview_dock.update_fit()
 
     def get_layer_widget_from_tab(self, tab_widget):
         """Renvoie l'ImageLayerWidget contenu dans l'onglet, ou None si introuvable."""

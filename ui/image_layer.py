@@ -12,12 +12,13 @@
 import os
 import xml.etree.ElementTree as ET
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QFileDialog, QDialog,
+    QWidget, QVBoxLayout, QFileDialog, QDialog, QTreeWidget
 )
 from PyQt5.QtGui import QPixmap, QPainter, QColor
 from PyQt5.QtCore import QRectF, Qt
 
 from core.model_items import DuplicataGroupItem
+from ui.delegates import TreeItemHighlightDelegate
 from ui.dialogs import DarkFileDialog, DarkMessageBox
 from ui.layer import LayerWidget
 
@@ -48,6 +49,33 @@ class ImageLayerWidget(LayerWidget):
         self.margin_color = ImageLayerWidget.next_margin_color()
         self.image_path = image_path
         self.scene.name = image_path
+        tree = QTreeWidget()
+        tree.setHeaderLabels(["Duplicatas"])
+        tree.setMinimumWidth(200)
+        tree.setItemDelegate(TreeItemHighlightDelegate())
+        tree.setStyleSheet("""
+            QTreeWidget {
+                background-color: #232323;
+                color: white;
+                border: none;
+            }
+            QTreeWidget::item {
+                background-color: #232323;
+                color: white;
+            }
+            QTreeWidget::item:selected {
+                background-color: #353535;
+                color: white;
+            }
+            QHeaderView::section {
+                background-color: #353535;   /* fond de l'en-tête */
+                color: white;                /* texte en blanc */
+                border: none;
+                padding: 4px;
+            }
+        """)
+        self.tree = tree
+
         original_addItem = self.scene.addItem
         self.scene.addItem = lambda item: (
             debug_log(f"[Scene: {self.scene.name}] addItem: id={id(item)}, type={type(item)}"),

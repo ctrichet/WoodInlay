@@ -17,9 +17,11 @@ from .toolbar import CollapsibleToolbar
 from .dialogs import (
     BackgroundSelectionDialog, NestingConfigDialog, DarkFileDialog
 )
+from .svg_preview import PreviewDock
 from .tab_bar import CustomTabBar
 from .delegates import ColorBackgroundDelegate, TreeItemHighlightDelegate
 from .layer import LayerWidget
+
 
 __all__ = [
     "MainWindow",
@@ -34,4 +36,6 @@ __all__ = [
     "ColorBackgroundDelegate",
     "TreeItemHighlightDelegate",
     "DarkFileDialog",
+    "LayerWidget",
+    "PreviewDock",
 ]

@@ -46,6 +46,32 @@ class SvgLayerWidget(LayerWidget):
         layout.addWidget(self.view)
         self.setLayout(layout)
         self.load_svg(file_path)
+        tree = QTreeWidget()
+        tree.setHeaderLabels(["Éléments SVG"])
+        tree.setMinimumWidth(200)
+        tree.setItemDelegate(TreeItemHighlightDelegate())
+        tree.setStyleSheet("""
+            QTreeWidget {
+                background-color: #232323;
+                color: white;
+                border: none;
+            }
+            QTreeWidget::item {
+                background-color: #232323;
+                color: white;
+            }
+            QTreeWidget::item:selected {
+                background-color: #353535;
+                color: white;
+            }
+            QHeaderView::section {
+                background-color: #353535;   /* fond de l'en-tête */
+                color: white;                /* texte en blanc */
+                border: none;
+                padding: 4px;
+            }
+        """)
+        self.tree = tree
 
     def load_svg(self, file_path):
         renderer = QSvgRenderer(file_path)
