@@ -25,7 +25,6 @@ from PyQt5.QtCore import (
     Qt, QPointF, QEvent, QTimer,
 )
 from core.model_items import DuplicataGroupItem
-from core.svg_parser import parse_svg_or_group
 from core.duplication_manager import perform_unique_duplication
 from core.nesting_manager import NestingManager, NestingWorker
 from ui.svg_layer import SvgLayerWidget
@@ -76,22 +75,12 @@ class MainWindow(QMainWindow):
         self.image_layers = {}
         self.image_layer_widgets = {}
 
-        # Widgets
-
-
-        # Tabs
-        self.tabs = QTabWidget()
-        self.colored_tabbar = CustomTabBar()
-        self.tabs.setTabBar(self.colored_tabbar)
-        self.tabs.currentChanged.connect(self.on_tab_changed)
-
         # SVG Layer (doit exister avant on_tab_changed)
-        svg_file = choose_svg_file()
-        self.load_svg_layer(svg_file)
-        self.layer = self.svg_layer
+        self.layer = SvgLayerWidget(choose_svg_file())
         self.tree = self.layer.tree
 
-        parse_svg_or_group(svg_file, self)
+        # Tabs
+        self.init_tabs()
 
         self.init_connections()
         self.init_preview_dock()
@@ -115,6 +104,15 @@ class MainWindow(QMainWindow):
 
         # 🟢 Appel maintenant que tout est prêt
         self.on_tab_changed(0)
+
+    def init_tabs(self):
+        self.tabs = QTabWidget()
+        self.colored_tabbar = CustomTabBar()
+        self.tabs.setTabBar(self.colored_tabbar)
+        self.tabs.currentChanged.connect(self.on_tab_changed)
+        self.tabs.addTab(self.layer, "SVG")
+        self.colored_tabbar.set_tab_color(0, QColor(45, 45, 45))
+        self.tabs.tabBar().setTabButton(0, QTabBar.RightSide, None)
 
     def init_palette(self):
         """Renvoie une palette sombre pour l'UI."""
@@ -149,7 +147,7 @@ class MainWindow(QMainWindow):
         svg_preview.setInteractive(False)
         svg_preview.setDragMode(QGraphicsView.NoDrag)
         svg_preview.setFocusPolicy(Qt.NoFocus)
-        svg_preview.setScene(self.svg_layer.scene)
+        svg_preview.setScene(self.layer.scene)
         svg_preview.setStyleSheet("""
             QGraphicsView {
                 background-color: #232323;   /* fond du QGraphicsView */
@@ -199,30 +197,6 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(self.export_active_layer_to_svg)
         QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(self.open_nesting_dialog)
         QShortcut(QKeySequence("Ctrl+C"), self).activated.connect(self.stop_nesting)
-
-
-    def add_svg_item(self, item, parent_tree_item=None):
-        # Ajout à la scène via SvgLayerWidget
-        self.svg_layer.items_by_id[item.element_id] = item
-        self.svg_layer.add_to_scene(item)
-
-        # Création du nœud dans l'arborescence
-        tree_parent = parent_tree_item or self.tree.invisibleRootItem()
-        tree_item = QTreeWidgetItem(tree_parent)
-        tree_item.setText(0, item.element_id)
-        tree_item.setData(0, Qt.UserRole, item.element_id)
-
-        self.svg_layer.tree_items_by_id[item.element_id]  = tree_item
-        self.svg_layer.items_by_id[item.element_id] = item
-
-    def add_group_to_tree(self, group_id, parent_tree_item=None):
-        parent = parent_tree_item or self.tree.invisibleRootItem()
-        group_item = QTreeWidgetItem(parent)
-        group_item.setText(0, group_id)
-        group_item.setData(0, Qt.UserRole, group_id)
-
-        self.layer.tree_items_by_id[group_id] = group_item
-        return group_item
 
     def active_scene(self):
         current_tab = self.tabs.currentWidget()
@@ -318,20 +292,6 @@ class MainWindow(QMainWindow):
         self.tabs.tabBar().setTabButton(index, QTabBar.RightSide, close_btn)
 
         print(f"[INFO] 🟢 Onglet ajouté : {tab_name} (image_path {image_path})")
-
-    def load_svg_layer(self, file_path):
-        # Créer l'objet SvgLayerWidget
-        self.svg_layer = SvgLayerWidget.get_instance(file_path)
-
-        # Ajouter un onglet pour la couche SVG
-        self.tabs.addTab(self.svg_layer, "SVG Layer")
-
-        # Couleur grise personnalisée
-        self.colored_tabbar.set_tab_color(0, QColor(45, 45, 45))
-
-        # ❌ Enlever la croix sur le tab SVG
-        self.tabs.tabBar().setTabButton(0, QTabBar.RightSide, None)
-
 
     def render_pdf_to_pixmap(self, pdf_path, page_number=0, dpi=300):
         try:
@@ -452,7 +412,7 @@ class MainWindow(QMainWindow):
 
             # Étape 3 – toggle sélection dans la scène
             for id_ in leaf_ids:
-                item = self.items_by_id.get(id_)
+                item = self.layer.items_by_id.get(id_)
                 if not item:
                     continue
                 item.setSelected(not all_selected)  # toggle selon état global
