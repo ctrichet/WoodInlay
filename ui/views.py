@@ -55,7 +55,7 @@ class SvgView(ZoomableView):
         item = self.itemAt(self._last_pan_point)
         if item:
             item = item.parentItem()
-            item.closed_item.setPen(QColor(0, 120, 215))
+            item.closed_item.setPen(QColor(128, 0, 128))
             self.newly_selected[item.element_id] = item
 
     def mouseMoveEvent(self, event):
@@ -65,7 +65,7 @@ class SvgView(ZoomableView):
                 self.layer.scene.removeItem(self._rubber_band_rect)
                 self._rubber_band_rect = None
             rect = QRectF(self.mapToScene(self._last_pan_point), self.mapToScene(event.pos())).normalized()
-            pen = QPen(QColor(0, 120, 215), 1, Qt.DashLine)  # couleur bleue, style tireté
+            pen = QPen(QColor(128, 0, 128), 1, Qt.DashLine)  # couleur bleue, style tireté
             self._rubber_band_rect = self.layer.scene.addRect(rect, pen)
             ################################################################
             for item in self.newly_selected.values():
@@ -73,7 +73,7 @@ class SvgView(ZoomableView):
             self.newly_selected = {}
             items_in_rect = [item for item in self.layer.scene.items(rect, Qt.IntersectsItemShape) if isinstance(item, GroupItem)]
             for item in items_in_rect:
-                item.closed_item.setPen(QColor(0, 120, 215))
+                item.closed_item.setPen(QColor(128, 0, 128))
                 self.newly_selected[item.element_id] = item
 
     def mouseReleaseEvent(self, event):
@@ -119,14 +119,14 @@ class ImageView(ZoomableView):
             item = item.parentItem()
         if ctrl_pressed:
             if item:
-                item.closed_item.setPen(QColor(0, 120, 215))
+                item.closed_item.setPen(QColor(128, 0, 128))
                 self.newly_selected[item.element_id] = item
         elif item:
             if item.isSelected():
                 self.move = True
                 super().mousePressEvent(event)
             else:
-                item.closed_item.setPen(QColor(0, 120, 215))
+                item.closed_item.setPen(QColor(128, 0, 128))
                 self.newly_selected[item.element_id] = item
         else:
             self.layer.scene.clearSelection()
@@ -142,7 +142,7 @@ class ImageView(ZoomableView):
                     self.layer.scene.removeItem(self._rubber_band_rect)
                     self._rubber_band_rect = None
                 rect = QRectF(self.mapToScene(self._last_pan_point), self.mapToScene(event.pos())).normalized()
-                pen = QPen(QColor(0, 120, 215), 1, Qt.DashLine)  # couleur bleue, style tireté
+                pen = QPen(QColor(128, 0, 128), 1, Qt.DashLine)  # couleur bleue, style tireté
                 self._rubber_band_rect = self.layer.scene.addRect(rect, pen)
                 ################################################################
 
@@ -151,7 +151,7 @@ class ImageView(ZoomableView):
                 self.newly_selected = {}
                 items_in_rect = [item for item in self.layer.scene.items(rect, Qt.IntersectsItemShape) if isinstance(item, DuplicataGroupItem)]
                 for item in items_in_rect:
-                    item.closed_item.setPen(QColor(0, 120, 215))
+                    item.closed_item.setPen(QColor(128, 0, 128))
                     self.newly_selected[item.element_id] = item
 
     def mouseReleaseEvent(self, event):

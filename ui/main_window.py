@@ -373,7 +373,6 @@ class MainWindow(QMainWindow):
 
         selected_items = self.svg_layer.tree.selectedItems()
         debug_log(f"Nombre d’éléments sélectionnés dans la scène : {len(selected_items)}")
-        debug_log(f"Items sélectionnés : {[getattr(it, 'element_id', '??') for it in selected_items]}")
 
         if not selected_items:
             DarkMessageBox.information(self, "Info", "Aucun élément sélectionné à dupliquer.")
@@ -426,6 +425,7 @@ class MainWindow(QMainWindow):
         duplicatas = [item for item in image_layer_widget.scene.items() if isinstance(item, DuplicataGroupItem)]
 
         for dup in duplicatas:
+            tree_item = self.svg_layer.tree_items_by_id[dup.element_id].setBackground(0, QBrush(QColor(35, 35, 35)))
             # Supprimer le masque associé de la scène SVG
             if dup.mask_item and dup.mask_item.scene():
                 dup.mask_item.scene().removeItem(dup.mask_item)
@@ -441,9 +441,8 @@ class MainWindow(QMainWindow):
         image_path = next((p for p, w in self.image_layer_widgets.items() if w == image_layer_widget), None)
         if image_path:
             self.image_layer_widgets.pop(image_path, None)
-
+        self.on_tab_changed(0)
         self.image_layers.pop(widget, None)
-
         # 3️⃣ Supprimer l’onglet
         self.tabs.removeTab(index)
         widget.deleteLater()
@@ -471,32 +470,6 @@ class MainWindow(QMainWindow):
 
         DarkMessageBox.warning(self, "Erreur", "Calque image introuvable.")
         return None
-
-    def color_tree_selection(self):
-        def apply_color_recursive(tree_item, color):
-            for col in range(tree_item.columnCount()):
-                tree_item.setBackground(col, color)
-            for i in range(tree_item.childCount()):
-                apply_color_recursive(tree_item.child(i), color)
-
-        selected_items = self.tree.selectedItems()
-        default_color = self.tree.palette().base().color()
-        selection_color = QColor("#a8d5ff")  # Exemple couleur sélection personnalisée
-
-        # D’abord, réinitialiser les couleurs de TOUS les items
-        def mask_all_colors(item):
-            for col in range(item.columnCount()):
-                item.setBackground(col, default_color)
-            for i in range(item.childCount()):
-                mask_all_colors(item.child(i))
-
-        root = self.tree.invisibleRootItem()
-        for i in range(root.childCount()):
-            mask_all_colors(root.child(i))
-
-        # Puis colorer récursivement les items sélectionnés et leurs enfants
-        for item in selected_items:
-            apply_color_recursive(item, selection_color)
 
     def rotate_group(self, items, angle_degrees):
         if not items:
@@ -567,63 +540,3 @@ class MainWindow(QMainWindow):
             return child
 
         return None
-
-    def apply_tree_item_color(self, tree_item, bg_filename):
-        # Trouve le calque image correspondant à ce nom de fichier
-        image_path = next(
-            (path for path in self.image_layer_widgets if os.path.basename(path) == bg_filename),
-            None
-        )
-
-        if image_path is None:
-            print(f"[WARNING] Aucun calque image trouvé pour {bg_filename}")
-            return
-
-        layer_widget = self.image_layer_widgets[image_path]
-        color = layer_widget.margin_color
-
-        for col in range(tree_item.columnCount()):
-            tree_item.setBackground(col, color)
-
-        # Si parent, essaye aussi de colorer le groupe
-        parent = tree_item.parent()
-        if parent:
-            self.apply_group_item_color(parent)
-
-    def apply_group_item_color(self, group_item) -> Optional[QColor]:
-        """Colorie le groupe si tous ses enfants directs ont une couleur (identique ou non).
-        Retourne la couleur appliquée ou None si aucune."""
-        if group_item.childCount() == 0:
-            return None  # Ce n'est pas un groupe
-
-        child_colors = set()
-
-        for i in range(group_item.childCount()):
-            child = group_item.child(i)
-
-            # Récupérer la couleur de l'enfant
-            if child.childCount() > 0:
-                # Enfant est un groupe → on suppose qu’il est déjà coloré
-                brush = child.background(0)
-                if brush.style() != Qt.NoBrush:
-                    child_colors.add(brush.color().name())
-                else:
-                    return None  # Enfant groupe non encore coloré → on arrête ici
-            else:
-                # Enfant normal
-                brush = child.background(0)
-                if brush.style() != Qt.NoBrush:
-                    child_colors.add(brush.color().name())
-                else:
-                    return None  # Un enfant non coloré → le groupe ne l’est pas
-
-        # Si tous les enfants sont colorés
-        if len(child_colors) == 1:
-            final_color = QColor(list(child_colors)[0])
-        else:
-            final_color = QColor("#888888")  # Couleur pour duplication multiple
-
-        for col in range(group_item.columnCount()):
-            group_item.setBackground(col, final_color)
-
-        return final_color

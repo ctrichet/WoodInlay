@@ -36,11 +36,9 @@ class LayerWidget(QWidget):
                 border: none;
             }
             QTreeWidget::item {
-                background-color: #232323;
                 color: white;
             }
             QTreeWidget::item:selected {
-                background-color: #353535;
                 color: white;
             }
             QHeaderView::section {

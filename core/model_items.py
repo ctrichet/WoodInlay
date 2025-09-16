@@ -84,7 +84,7 @@ class CompositeGroupItem(QGraphicsItemGroup):
 
     def paint(self, painter, option, widget=None):
         if option.state & QStyle.State_Selected:
-            painter.setPen(QPen(QColor("white")))  # couleur sélection personnalisée
+            painter.setPen(QPen(QColor(0, 120, 215)))  # couleur sélection personnalisée
         else:
             painter.setPen((QPen(QColor("black"))))
         super().paint(painter, option, widget)
@@ -95,26 +95,6 @@ class GroupItem(CompositeGroupItem):
         super().__init__(element_id, closed_item, open_items, parent)
         self.duplicata = None
         self.setFlags(self.ItemIsSelectable)
-
-    def duplicate(self, layer):
-        scene = layer.scene
-        if self.duplicata:
-            previous_layer = self.duplicata.layer
-            if previous_layer == layer:
-                return False
-            previous_layer.scene.removeItem(self.duplicata)
-            previous_layer.items_by_id.pop(self.element_id)
-            tree_item = previous_layer.tree_items_by_id[self.element_id]
-            parent = tree_item.parent()
-            if parent:
-                parent.takeChild(parent.indexOfChild(tree_item))
-            previous_layer.tree_items_by_id.pop(self.element_id)
-        self.duplicata = DuplicataGroupItem(self, layer)
-        layer.items_by_id[self.element_id] = self.duplicata
-        scene.addItem(self.duplicata)
-        self.duplicata.mask()
-        return True
-
 
 class DuplicataGroupItem(CompositeGroupItem):
     @staticmethod
