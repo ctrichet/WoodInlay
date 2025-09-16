@@ -36,7 +36,6 @@ from ui.dialogs import (
     NestingConfigDialog, BackgroundSelectionDialog, DarkFileDialog,
     DarkMessageBox,
 )
-from ui.delegates import TreeItemHighlightDelegate
 from ui.tab_bar import CustomTabBar
 from utils.debug import debug_log
 
@@ -76,7 +75,8 @@ class MainWindow(QMainWindow):
         self.image_layer_widgets = {}
 
         # SVG Layer (doit exister avant on_tab_changed)
-        self.layer = SvgLayerWidget(choose_svg_file())
+        self.svg_layer = SvgLayerWidget(choose_svg_file())
+        self.layer = self.svg_layer
         self.tree = self.layer.tree
 
         # Tabs
@@ -129,6 +129,7 @@ class MainWindow(QMainWindow):
         palette.setColor(QPalette.Link, QColor(42, 130, 218))
         palette.setColor(QPalette.HighlightedText, Qt.black)
         palette.setColor(QPalette.Window, QColor(35, 35, 35))
+        palette.setColor(QPalette.Highlight, QColor(0, 120, 215))
         return palette
 
     def get_active_layer(self):
@@ -190,8 +191,6 @@ class MainWindow(QMainWindow):
 
 
     def init_connections(self):
-        self.tree.itemSelectionChanged.connect(self.sync_tree_to_scene)
-        self.layer.scene.selectionChanged.connect(self.sync_scene_to_tree)
 
         QShortcut(QKeySequence("Ctrl+D"), self).activated.connect(self.duplicate_via_toolbar_or_shortcut)
         QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(self.export_active_layer_to_svg)
@@ -370,63 +369,9 @@ class MainWindow(QMainWindow):
             return child
         return None
 
-
-    def sync_scene_to_tree(self):
-        """Synchronise la sélection dans la scène vers l’arbre."""
-        self.layer.tree.blockSignals(True)
-        self.layer.tree.clearSelection()
-
-        for item in self.layer.scene.selectedItems():
-            tree_item = self.layer.tree_items_by_id.get(item.element_id)
-            if tree_item:
-                tree_item.setSelected(True)
-
-        self.tree.blockSignals(False)
-
-    def sync_tree_to_scene(self):
-        selected_tree_items = self.layer.tree.selectedItems()
-        scene = self.layer.scene
-
-        # ⏸️ Bloque temporairement les signaux
-        scene.blockSignals(True)
-
-        # Étape 1 – collecter les feuilles liées à chaque item sélectionné
-        def collect_leaf_ids(tree_item):
-            ids = []
-            if tree_item.childCount() == 0:
-                element_id = tree_item.data(0, Qt.UserRole)
-                if element_id in self.layer.items_by_id:
-                    ids.append(element_id)
-            else:
-                for i in range(tree_item.childCount()):
-                    ids.extend(collect_leaf_ids(tree_item.child(i)))
-            return ids
-
-        # Étape 2 – Détecter si les feuilles sont toutes sélectionnées
-        for tree_item in selected_tree_items:
-            leaf_ids = collect_leaf_ids(tree_item)
-            all_selected = all(
-                self.layer.items_by_id.get(id_).isSelected()
-                for id_ in leaf_ids if id_ in self.layer.items_by_id
-            )
-
-            # Étape 3 – toggle sélection dans la scène
-            for id_ in leaf_ids:
-                item = self.layer.items_by_id.get(id_)
-                if not item:
-                    continue
-                item.setSelected(not all_selected)  # toggle selon état global
-
-        scene.blockSignals(False)
-
-
     def duplicate_via_toolbar_or_shortcut(self):
-        debug_log("START")
 
-        current_widget = self.tabs.currentWidget()
-        debug_log(f"Widget actif : {current_widget}")
-
-        selected_items = self.svg_layer.scene.selectedItems()
+        selected_items = self.svg_layer.tree.selectedItems()
         debug_log(f"Nombre d’éléments sélectionnés dans la scène : {len(selected_items)}")
         debug_log(f"Items sélectionnés : {[getattr(it, 'element_id', '??') for it in selected_items]}")
 
@@ -436,7 +381,7 @@ class MainWindow(QMainWindow):
             return
 
         # Cas 1 : l'utilisateur est sur le calque SVG
-        if isinstance(current_widget, SvgLayerWidget):
+        if isinstance(self.layer, SvgLayerWidget):
             target_path = self.open_background_selection_dialog()
             if target_path is None:
                 debug_log("Aucun calque cible sélectionné pour la duplication.")
@@ -450,20 +395,12 @@ class MainWindow(QMainWindow):
                 debug_log("END")
                 return
 
-            target_view = target_layer_widget.view
             debug_log(f"✅ Duplication vers calque sélectionné $ {target_path}")
 
         # Cas 2 : l'utilisateur est sur un calque image
-        elif current_widget in self.image_layers:
-            target_layer_widget = self.image_layers[current_widget]
-            target_path = next((p for p,w in self.image_layer_widgets.items() if w == target_layer_widget), None)
-            if not target_path:
-                debug_log("❌ Calque actif non trouvé dans image_layer_widgets.")
-                DarkMessageBox.warning(self, "Erreur", "Calque actif introuvable.")
-                debug_log("END")
-                return
-
-            debug_log(f"✅ Duplication directe sur le calque actif $ {target_path}")
+        elif isinstance(self.layer, ImageLayerWidget):
+            target_layer_widget = self.layer
+            debug_log(f"✅ Duplication directe sur le calque actif $ {self.layer}")
 
         else:
             debug_log("❌ Onglet actif non reconnu (ni SVG, ni calque image)")
@@ -472,7 +409,7 @@ class MainWindow(QMainWindow):
             return
 
         # Exécution de la duplication
-        perform_unique_duplication(selected_items, target_layer_widget, self)
+        perform_unique_duplication(selected_items, target_layer_widget, self.svg_layer)
         debug_log("END")
 
     def close_tab(self, index):

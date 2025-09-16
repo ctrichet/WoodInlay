@@ -18,9 +18,9 @@ from PyQt5.QtGui import QPixmap, QPainter, QColor
 from PyQt5.QtCore import QRectF, Qt
 
 from core.model_items import DuplicataGroupItem
-from ui.delegates import TreeItemHighlightDelegate
 from ui.dialogs import DarkFileDialog, DarkMessageBox
 from ui.layer import LayerWidget
+from ui.views import ImageView
 
 from utils.debug import debug_log
 
@@ -49,33 +49,11 @@ class ImageLayerWidget(LayerWidget):
         self.margin_color = ImageLayerWidget.next_margin_color()
         self.image_path = image_path
         self.scene.name = image_path
-        tree = QTreeWidget()
-        tree.setHeaderLabels(["Duplicatas"])
-        tree.setMinimumWidth(200)
-        tree.setItemDelegate(TreeItemHighlightDelegate())
-        tree.setStyleSheet("""
-            QTreeWidget {
-                background-color: #232323;
-                color: white;
-                border: none;
-            }
-            QTreeWidget::item {
-                background-color: #232323;
-                color: white;
-            }
-            QTreeWidget::item:selected {
-                background-color: #353535;
-                color: white;
-            }
-            QHeaderView::section {
-                background-color: #353535;   /* fond de l'en-tête */
-                color: white;                /* texte en blanc */
-                border: none;
-                padding: 4px;
-            }
-        """)
-        self.tree = tree
-
+        self.view = ImageView(self)
+        self.view.setRenderHint(QPainter.Antialiasing)
+        layout = QVBoxLayout()
+        layout.addWidget(self.view)
+        self.setLayout(layout)
         original_addItem = self.scene.addItem
         self.scene.addItem = lambda item: (
             debug_log(f"[Scene: {self.scene.name}] addItem: id={id(item)}, type={type(item)}"),
@@ -83,10 +61,6 @@ class ImageLayerWidget(LayerWidget):
         )[1]
 
         self.background_pixmap = None
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.view)
-        self.setLayout(layout)
 
         if pixmap:
             self.load_pixmap(pixmap)

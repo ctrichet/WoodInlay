@@ -10,12 +10,12 @@
 #############################################################   ':::::::'   ####
 from math import hypot
 from PyQt5.QtWidgets import (
-    QGraphicsPathItem, QGraphicsItemGroup, QGraphicsPixmapItem,
+    QGraphicsPathItem, QGraphicsItemGroup, QGraphicsPixmapItem, QStyle,
     QGraphicsSceneMouseEvent,
 )
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import (
-    QPainterPath, QImage, QPixmap, QPainter, QTransform, QPolygonF,
+    QPainterPath, QImage, QPixmap, QPainter, QPen, QPolygonF, QColor,
 )
 from math import radians, cos, sin, atan2, degrees
 from svg.path import parse_path
@@ -60,6 +60,9 @@ class PathItem(QGraphicsPathItem):
         super().__init__(painter_path, parent)
         self.d_string = d_string
 
+    def setPen(self, color=QColor("black")):
+        pen = QPen(color)
+        super().setPen(pen)
 
 class CompositeGroupItem(QGraphicsItemGroup):
     def __init__(self, element_id, closed_item, open_items, parent=None):
@@ -79,6 +82,13 @@ class CompositeGroupItem(QGraphicsItemGroup):
     def shape(self):
         return self.closed_item.path()
 
+    def paint(self, painter, option, widget=None):
+        if option.state & QStyle.State_Selected:
+            painter.setPen(QPen(QColor("white")))  # couleur sélection personnalisée
+        else:
+            painter.setPen((QPen(QColor("black"))))
+        super().paint(painter, option, widget)
+
 
 class GroupItem(CompositeGroupItem):
     def __init__(self, element_id, closed_item, open_items=None, parent=None):
@@ -86,20 +96,24 @@ class GroupItem(CompositeGroupItem):
         self.duplicata = None
         self.setFlags(self.ItemIsSelectable)
 
-    def duplicate(self, target_view):
-        scene = target_view.scene()
-        background_id = scene.name
+    def duplicate(self, layer):
+        scene = layer.scene
         if self.duplicata:
-            if self.duplicata.background_id == background_id:
+            previous_layer = self.duplicata.layer
+            if previous_layer == layer:
                 return False
-            self.duplicata.scene().removeItem(self.duplicata)
-        self.duplicata = DuplicataGroupItem(self, background_id)
-        self.add_duplicata_to_background(scene)
-        return True
-
-    def add_duplicata_to_background(self, scene):
+            previous_layer.scene.removeItem(self.duplicata)
+            previous_layer.items_by_id.pop(self.element_id)
+            tree_item = previous_layer.tree_items_by_id[self.element_id]
+            parent = tree_item.parent()
+            if parent:
+                parent.takeChild(parent.indexOfChild(tree_item))
+            previous_layer.tree_items_by_id.pop(self.element_id)
+        self.duplicata = DuplicataGroupItem(self, layer)
+        layer.items_by_id[self.element_id] = self.duplicata
         scene.addItem(self.duplicata)
         self.duplicata.mask()
+        return True
 
 
 class DuplicataGroupItem(CompositeGroupItem):
@@ -111,8 +125,7 @@ class DuplicataGroupItem(CompositeGroupItem):
         dy = p2.y() - p1.y()
         return degrees(atan2(dy, dx))
 
-    def __init__(self, groupItem, background_id, parent=None):
-        element_id = f"{groupItem.element_id}_dup"
+    def __init__(self, groupItem, layer, parent=None):
         closed_dup = PathItem(d_string=groupItem.closed_item.d_string)
         open_items = []
         for item in groupItem.childItems():
@@ -121,8 +134,8 @@ class DuplicataGroupItem(CompositeGroupItem):
             open_dup = PathItem(d_string=item.d_string)
             open_items.append(open_dup)
 
-        super().__init__(element_id, closed_dup, open_items, parent)
-        self.background_id = background_id
+        super().__init__(groupItem.element_id, closed_dup, open_items, parent)
+        self.layer = layer
         self.mask_item_pos = groupItem.pos()
         debug_log(f"groupItem.closed_item.boundingRect().topLeft() = {groupItem.closed_item.boundingRect().topLeft()}")
         debug_log(f"groupItem.closed_item.sceneBoundingRect().topLeft() = {groupItem.closed_item.sceneBoundingRect().topLeft()}")
@@ -191,7 +204,7 @@ class DuplicataGroupItem(CompositeGroupItem):
         if self.mask_item:
             main_window.svg_layer.scene.removeItem(self.mask_item)
 
-        image_layer_widget = main_window.image_layer_widgets.get(self.background_id)
+        image_layer_widget = self.layer
         pixmap = image_layer_widget.background_pixmap
 
         original_path = self.closed_item.path()

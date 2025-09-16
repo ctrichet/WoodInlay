@@ -12,7 +12,7 @@
 from .main_window import MainWindow
 from .svg_layer import SvgLayerWidget
 from .image_layer import ImageLayerWidget
-from .views import ZoomableView
+from .views import ImageView, SvgView
 from .toolbar import CollapsibleToolbar
 from .dialogs import (
     BackgroundSelectionDialog, NestingConfigDialog, DarkFileDialog
@@ -28,7 +28,8 @@ __all__ = [
     "LayerWidget"
     "SvgLayerWidget",
     "ImageLayerWidget",
-    "ZoomableView",
+    "SvgView",
+    "ImageView",
     "CollapsibleToolbar",
     "BackgroundSelectionDialog",
     "NestingConfigDialog",

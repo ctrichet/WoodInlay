@@ -20,43 +20,18 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
 from utils.debug import debug_log
 from ui.layer import LayerWidget
-from ui.delegates import TreeItemHighlightDelegate
+from ui.views import SvgView
 from core.model_items import PathItem, GroupItem
 
 class SvgLayerWidget(LayerWidget):
 
     def __init__(self, file_path):
         super().__init__()
-
+        self.view = SvgView(self)
+        self.view.setRenderHint(QPainter.Antialiasing)
         layout = QVBoxLayout()
         layout.addWidget(self.view)
         self.setLayout(layout)
-        tree = QTreeWidget()
-        tree.setHeaderLabels(["Éléments SVG"])
-        tree.setMinimumWidth(200)
-        tree.setItemDelegate(TreeItemHighlightDelegate())
-        tree.setStyleSheet("""
-            QTreeWidget {
-                background-color: #232323;
-                color: white;
-                border: none;
-            }
-            QTreeWidget::item {
-                background-color: #232323;
-                color: white;
-            }
-            QTreeWidget::item:selected {
-                background-color: #353535;
-                color: white;
-            }
-            QHeaderView::section {
-                background-color: #353535;   /* fond de l'en-tête */
-                color: white;                /* texte en blanc */
-                border: none;
-                padding: 4px;
-            }
-        """)
-        self.tree = tree
         self.parse_svg(file_path)
 
     def parse_svg(self, svg_file):
