@@ -251,46 +251,39 @@ class MainWindow(QMainWindow):
         layer_widget = ImageLayerWidget(image_path=image_path, pixmap=pixmap)
 
         # 🔶 Cadre extérieur coloré (bordure)
-        color = layer_widget.margin_color.name()
-        debug_log(f"[OK] ✅ Couleur de bordure : {color}")
+        color = layer_widget.margin_color
+        debug_log(f"[OK] ✅ Couleur de bordure : {color.name()}")
 
+        # ⚙️ Construction du widget de l'onglet
         outer_frame = QWidget()
-        outer_frame.setStyleSheet(f"background-color: {color}; border-radius: 0px;")
+        outer_frame.setStyleSheet(f"background-color: {color.name()}; border-radius: 0px;")
 
         inner_layout = QHBoxLayout(outer_frame)
         inner_layout.setContentsMargins(8, 8, 8, 8)
 
         inner_container = QWidget()
         inner_container.setStyleSheet("background-color: none;")
-
         content_layout = QHBoxLayout(inner_container)
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.addWidget(layer_widget)
-
         inner_layout.addWidget(inner_container)
 
-        # ⚠️ Fond gris foncé
+        # ⚠️ Fond gris foncé dans la vue
         layer_widget.view.setBackgroundBrush(QBrush(QColor(53, 53, 53)))
 
         tab_name = os.path.basename(image_path)
 
-        # 📌 Insertion avant l’onglet "+"
-        plus_index = self.tabs.count() - 1
-        index = self.tabs.insertTab(plus_index, outer_frame, tab_name)
+        # 📌 Insertion dans le QTabWidget juste avant le "+"
+        index = self.tabs.count() - 1
+        self.tabs.insertTab(index, outer_frame, tab_name)
 
+        # 🔹 Configurer le bouton de fermeture et la couleur via la TabBar
+        self.tabs.tabBar().add_image_tab(index, color)
+
+        # 🔹 Enregistrer la référence
         self.image_layer_widgets[image_path] = layer_widget
-        self.image_layers[outer_frame] = layer_widget
 
-        self.tabs.tabBar().set_tab_color(index, layer_widget.margin_color)
-
-                # 🔹 Ajout d’un bouton de fermeture uniquement pour les onglets image
-        close_btn = QToolButton()
-        close_btn.setIcon(self.style().standardIcon(QStyle.SP_TitleBarCloseButton))
-        close_btn.setAutoRaise(True)
-        close_btn.clicked.connect(lambda _, i=index: self.close_tab(i))
-        self.tabs.tabBar().setTabButton(index, QTabBar.RightSide, close_btn)
-
-        print(f"[INFO] 🟢 Onglet ajouté : {tab_name} (image_path {image_path})")
+        debug_log(f"[OK] Onglet ajouté : {tab_name} à l'indice {index}")
 
     def render_pdf_to_pixmap(self, pdf_path, page_number=0, dpi=300):
         try:
@@ -410,44 +403,6 @@ class MainWindow(QMainWindow):
         # Exécution de la duplication
         perform_unique_duplication(selected_items, target_layer_widget, self.svg_layer)
         debug_log("END")
-
-    def close_tab(self, index):
-        """Ferme uniquement un onglet image et supprime ses duplicatas associés"""
-        widget = self.tabs.widget(index)
-
-        # Retrouver l'image_layer_widget associé
-        image_layer_widget = self.image_layers.get(widget)
-        if not image_layer_widget:
-            debug_log("❌ Impossible de retrouver le layer à fermer")
-            return
-
-        # 1️⃣ Supprimer les duplicatas et leurs masques
-        duplicatas = [item for item in image_layer_widget.scene.items() if isinstance(item, DuplicataGroupItem)]
-
-        for dup in duplicatas:
-            tree_item = self.svg_layer.tree_items_by_id[dup.element_id].setBackground(0, QBrush(QColor(35, 35, 35)))
-            # Supprimer le masque associé de la scène SVG
-            if dup.mask_item and dup.mask_item.scene():
-                dup.mask_item.scene().removeItem(dup.mask_item)
-                dup.mask_item = None
-
-            # Supprimer le duplicata de la scène image
-            if dup.scene():
-                dup.scene().removeItem(dup)
-
-        debug_log(f"🗑️ Supprimé {len(duplicatas)} duplicata(s) liés à {image_layer_widget.image_path}")
-
-        # 2️⃣ Nettoyer les références dans les dictionnaires
-        image_path = next((p for p, w in self.image_layer_widgets.items() if w == image_layer_widget), None)
-        if image_path:
-            self.image_layer_widgets.pop(image_path, None)
-        self.on_tab_changed(0)
-        self.image_layers.pop(widget, None)
-        # 3️⃣ Supprimer l’onglet
-        self.tabs.removeTab(index)
-        widget.deleteLater()
-
-        debug_log(f"🗑️ Onglet fermé : {image_path}")
 
     def open_background_selection_dialog(self):
         selected = self.svg_layer.scene.selectedItems()

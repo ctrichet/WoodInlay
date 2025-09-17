@@ -10,13 +10,14 @@
 #############################################################   ':::::::'   ####
 
 from PyQt5.QtWidgets import (
-    QTabBar, QStyleOptionTab, QStyle, QFileDialog, QDialog
+    QTabBar, QStyleOptionTab, QStyle, QFileDialog, QDialog, QToolButton
 )
 from PyQt5.QtGui import QPainter, QColor, QBrush, QPen
 from PyQt5.QtCore import QSize
 
 from ui.dialogs import DarkFileDialog, DarkMessageBox
-
+from ui.image_layer import ImageLayerWidget
+from core.model_items import DuplicataGroupItem
 from utils.debug import debug_log
 
 class CustomTabBar(QTabBar):
@@ -27,6 +28,7 @@ class CustomTabBar(QTabBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._tab_colors = {}
+        self.close_buttons = {}
         self.setUsesScrollButtons(False)
         self.add_plus_tab()  # Ajoute le "+" au démarrage
 
@@ -51,6 +53,53 @@ class CustomTabBar(QTabBar):
         """Ajoute l'onglet spécial + à la fin."""
         self.addTab("+")
         self.set_tab_color(self.count() - 1, QColor("#CCCCCC"))
+
+    def add_image_tab(self, index: int, color: QColor):
+        """Ajoute seulement le bouton de fermeture et la couleur de l'onglet."""
+        self.set_tab_color(index, color)
+
+        close_btn = QToolButton(self)
+        close_btn.setIcon(self.style().standardIcon(QStyle.SP_TitleBarCloseButton))
+        close_btn.setAutoRaise(True)
+        close_btn.clicked.connect(lambda _, i=index: self.close_tab(i))
+        self.setTabButton(index, QTabBar.RightSide, close_btn)
+        self.close_buttons[index] = close_btn
+
+
+    def close_tab(self, index: int):
+
+        self._window.tabs.blockSignals(True)
+        frame = self.parent().widget(index)
+        image_layer_widget = frame.findChildren(ImageLayerWidget)[0]
+
+        for item in image_layer_widget.scene.items():
+            if isinstance(item, DuplicataGroupItem):
+                tree_item = self._window.svg_layer.tree_items_by_id[item.element_id]
+                tree_item.setBackground(0, QBrush(QColor(35, 35, 35)))
+                # Supprimer le masque associé
+                if item.mask_item and item.mask_item.scene():
+                    item.mask_item.scene().removeItem(item.mask_item)
+                    item.mask_item = None
+                # Supprimer le duplicata de la scène
+                if item.scene():
+                    item.scene().removeItem(item)
+
+        # 2️⃣ Nettoyer les références dans les dictionnaires
+        image_path = next(
+            (p for p, w in self._window.image_layer_widgets.items() if w == image_layer_widget),
+            None
+                )
+        if image_path:
+            self._window.image_layer_widgets.pop(image_path, None)
+        current_index = self.parent().currentIndex()
+        # 3️⃣ Supprimer l’onglet et le widget
+        self._window.tabs.removeTab(index)
+        frame.deleteLater()
+        self.close_buttons.pop(index, None)
+        self._window.tabs.blockSignals(False)
+
+        if index == current_index:
+            self._window.on_tab_changed(0)
 
     def set_tab_color(self, index, color):
         self._tab_colors[index] = color
