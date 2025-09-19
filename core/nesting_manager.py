@@ -27,8 +27,6 @@ from PyQt5.QtGui import (
 from core.model_items import DuplicataGroupItem
 
 from utils.debug import debug_log
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsPolygonItem
-from PyQt5.QtGui import QPolygonF, QPen, QColor
 from PyQt5.QtCore import QPointF
 
 from shapely.geometry import Polygon

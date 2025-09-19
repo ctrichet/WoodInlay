@@ -1,37 +1,36 @@
 #############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
+#|                                                              |(:)|||||      #
 #|   ui/svg_layer.py                                            !!!!!!|||
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
 #|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|                                                              :::::(|):      #
 #############################################################   ':::::::'   ####
 
-import os
 import re
 import uuid
 import xml.etree.ElementTree as ET
-from PyQt5.QtWidgets import(
-    QWidget, QVBoxLayout, QGraphicsScene, QTreeWidget, QTreeWidgetItem
-)
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
-from utils.debug import debug_log
+from PyQt5.QtWidgets import(
+    QWidget, QVBoxLayout, QTreeWidgetItem,
+)
+
+from core.model_items import PathItem, GroupItem
 from ui.layer import LayerWidget
 from ui.views import SvgView
-from core.model_items import PathItem, GroupItem
+
+from utils.debug import debug_log
+
 
 class SvgLayerWidget(LayerWidget):
 
     def __init__(self, file_path):
         super().__init__()
-        self.view = SvgView(self)
-        self.view.setRenderHint(QPainter.Antialiasing)
-        layout = QVBoxLayout()
-        layout.addWidget(self.view)
-        self.setLayout(layout)
+        self.init_view(SvgView(self))
         self.parse_svg(file_path)
 
     def parse_svg(self, svg_file):

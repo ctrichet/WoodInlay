@@ -81,7 +81,7 @@ def perform_unique_duplication(selected_items, layer, svg_layer):
         while tree_item:
             all_children = True
             for idx in range(tree_item.childCount()):
-                if tree_item.child(idx).background(0).color() != layer.margin_color: #if tree_item.child(idx).background(0) != layer.margin_color:
+                if tree_item.child(idx).background(0).color() != layer.margin_color:
                     all_children = False
                     break
             if all_children:

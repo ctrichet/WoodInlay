@@ -15,8 +15,9 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import (
-    QPainterPath, QImage, QPixmap, QPainter, QPen, QPolygonF, QColor,
+    QPainterPath, QImage, QPixmap, QPainter, QPen, QPolygonF, QColor, QPalette,
 )
+from styles.colors import Colors
 from math import radians, cos, sin, atan2, degrees
 from svg.path import parse_path
 
@@ -60,7 +61,7 @@ class PathItem(QGraphicsPathItem):
         super().__init__(painter_path, parent)
         self.d_string = d_string
 
-    def setPen(self, color=QColor("black")):
+    def setPen(self, color=QColor(Colors.outline)):
         pen = QPen(color)
         super().setPen(pen)
 
@@ -84,9 +85,9 @@ class CompositeGroupItem(QGraphicsItemGroup):
 
     def paint(self, painter, option, widget=None):
         if option.state & QStyle.State_Selected:
-            painter.setPen(QPen(QColor(0, 120, 215)))  # couleur sélection personnalisée
+            painter.setPen(QPen(QColor(Colors.highlight)))  # couleur sélection personnalisée
         else:
-            painter.setPen((QPen(QColor("black"))))
+            painter.setPen((QPen(QColor(Colors.outline))))
         super().paint(painter, option, widget)
 
 

@@ -1,24 +1,24 @@
 #############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
+#|                                                              |(:)|||||      #
 #|   ui/image_layer.py                                          !!!!!!|||
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: 2025/08/12 15:43:01 ctrichet                 \|||/.::::::::::::::'
 #|   Updated: 2025/08/12 15:43:01 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|                                                              :::::(|):      #
 #############################################################   ':::::::'   ####
 
 import os
 import xml.etree.ElementTree as ET
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QFileDialog, QDialog, QTreeWidget
-)
-from PyQt5.QtGui import QPixmap, QPainter, QColor
+
 from PyQt5.QtCore import QRectF, Qt
+from PyQt5.QtGui import QPixmap, QPainter, QColor
+from PyQt5.QtWidgets import (
+    QVBoxLayout, QFileDialog, QDialog, QMessageBox
+)
 
 from core.model_items import DuplicataGroupItem
-from ui.dialogs import DarkFileDialog, DarkMessageBox
 from ui.layer import LayerWidget
 from ui.views import ImageView
 
@@ -49,11 +49,8 @@ class ImageLayerWidget(LayerWidget):
         self.margin_color = ImageLayerWidget.next_margin_color()
         self.image_path = image_path
         self.scene.name = image_path
-        self.view = ImageView(self)
-        self.view.setRenderHint(QPainter.Antialiasing)
-        layout = QVBoxLayout()
-        layout.addWidget(self.view)
-        self.setLayout(layout)
+        self.init_view(ImageView(self))
+
         original_addItem = self.scene.addItem
         self.scene.addItem = lambda item: (
             debug_log(f"[Scene: {self.scene.name}] addItem: id={id(item)}, type={type(item)}"),
@@ -61,11 +58,10 @@ class ImageLayerWidget(LayerWidget):
         )[1]
 
         self.background_pixmap = None
-
         if pixmap:
             self.load_pixmap(pixmap)
         elif image_path:
-                self.load_image(image_path)
+            self.load_image(image_path)
 
     def on_placement(self, idx, rot, dx, dy):
         # Ceci est exécuté dans le thread principal, safe pour Qt
@@ -74,7 +70,7 @@ class ImageLayerWidget(LayerWidget):
     def load_image(self, path):
         pixmap = QPixmap(path)
         if pixmap.isNull():
-            DarkMessageBox.critical(self, "Erreur", f"Impossible de charger l’image : {path}")
+            QMessageBox.critical(self, "Erreur", f"Impossible de charger l’image : {path}")
             return
         self.load_pixmap(pixmap)
 
@@ -92,7 +88,7 @@ class ImageLayerWidget(LayerWidget):
 
     def export_svg(self):
         if not self.image_path:
-            DarkMessageBox.warning(self, "Export SVG", "Aucune image de fond chargée.")
+            QMessageBox.warning(self, "Export SVG", "Aucune image de fond chargée.")
             return
 
 
@@ -119,7 +115,7 @@ class ImageLayerWidget(LayerWidget):
         base_name, _ = os.path.splitext(image_name)
         default_filename = base_name + ".svg"
 
-        dialog = DarkFileDialog(self, "Exporter en SVG")
+        dialog = QFileDialog(self, "Exporter en SVG")
         dialog.setAcceptMode(QFileDialog.AcceptSave)
         dialog.setNameFilter("Fichiers SVG (*.svg)")
         dialog.selectFile(default_filename)
@@ -132,4 +128,4 @@ class ImageLayerWidget(LayerWidget):
         tree = ET.ElementTree(svg_root)
         tree.write(output_path, encoding="utf-8", xml_declaration=True)
 
-        DarkMessageBox.information(self, "Export SVG", f"Fichier exporté :\n{output_path}")
+        QMessageBox.information(self, "Export SVG", f"Fichier exporté :\n{output_path}")

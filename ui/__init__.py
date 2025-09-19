@@ -15,13 +15,12 @@ from .image_layer import ImageLayerWidget
 from .views import ImageView, SvgView
 from .toolbar import CollapsibleToolbar
 from .dialogs import (
-    BackgroundSelectionDialog, NestingConfigDialog, DarkFileDialog
+    BackgroundSelectionDialog, NestingConfigDialog,
 )
 from .svg_preview import PreviewDock
 from .tab_bar import CustomTabBar
 from .delegates import ColorBackgroundDelegate, TreeItemHighlightDelegate
 from .layer import LayerWidget
-
 
 __all__ = [
     "MainWindow",
@@ -36,7 +35,6 @@ __all__ = [
     "CustomTabBar",
     "ColorBackgroundDelegate",
     "TreeItemHighlightDelegate",
-    "DarkFileDialog",
     "LayerWidget",
     "PreviewDock",
 ]

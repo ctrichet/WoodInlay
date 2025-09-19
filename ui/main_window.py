@@ -1,100 +1,114 @@
 #############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
+#|                                                              |(:)|||||      #
 #|   ui/main_window.py                                          !!!!!!|||
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
 #|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|                                                              :::::(|):      #
 #############################################################   ':::::::'   ####
 
 import os, fitz, sys
 from typing import Optional
 from math import radians, cos, sin
 
+from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtGui import QKeySequence, QPixmap, QImage, QBrush, QColor
 from PyQt5.QtWidgets import (
-    QMainWindow, QTreeWidget, QTreeWidgetItem, QTabWidget, QDialog, QFileDialog,
-    QGraphicsView, QWidget, QHBoxLayout, QVBoxLayout, QShortcut, QTabBar,
-    QStyle, QToolButton, QDockWidget,
+    QMainWindow, QTabWidget, QDialog, QFileDialog, QMessageBox, QWidget,
+    QGraphicsView, QHBoxLayout, QShortcut, QTabBar, QDockWidget,
 )
-from PyQt5.QtGui import (
-    QColor, QKeySequence, QPixmap, QImage, QPalette, QBrush,
-)
-from PyQt5.QtCore import (
-    Qt, QPointF, QEvent, QTimer,
-)
+
 from core.model_items import DuplicataGroupItem
 from core.duplication_manager import perform_unique_duplication
-from core.nesting_manager import NestingManager, NestingWorker
+from core.nesting_manager import NestingWorker
 from ui.svg_layer import SvgLayerWidget
 from ui.toolbar import CollapsibleToolbar
 from ui.layer import LayerWidget
 from ui.image_layer import ImageLayerWidget
 from ui.svg_preview import PreviewDock
-from ui.dialogs import (
-    NestingConfigDialog, BackgroundSelectionDialog, DarkFileDialog,
-    DarkMessageBox,
-)
+from ui.dialogs import NestingConfigDialog, BackgroundSelectionDialog
 from ui.tab_bar import CustomTabBar
+from styles.colors import Colors
+
 from utils.debug import debug_log
 
-
-from PyQt5.QtGui import QPen, QColor
-from PyQt5.QtWidgets import QGraphicsRectItem
 
 class MainWindow(QMainWindow):
     _instance = None
 
     def __init__(self):
-        def choose_svg_file():
-            """Ouvre une boîte de dialogue pour choisir un fichier SVG au démarrage avec thème sombre."""
-
-            dialog = DarkFileDialog(
-                None,
-                "Choisir un fichier SVG",
-                "",
-                "Fichiers SVG (*.svg)"
-            )
-            dialog.setFileMode(QFileDialog.ExistingFile)
-
-            if dialog.exec_() == QDialog.Accepted:
-                file_path = dialog.selectedFiles()[0]
-                return file_path
-            else:
-                DarkMessageBox.warning(self, "Aucun fichier", "Aucun fichier SVG sélectionné. L'application va se fermer.")
-                sys.exit(0)
-
         super().__init__()
         MainWindow._instance = self
         self.setWindowTitle("Wood Inlay Tool - Qt SVG")
         self.resize(1200, 800)
 
-        # Dictionnaires
+        # ===================== Choix du fichier SVG =====================
+        file_path = self.choose_svg_file()
+
+        # ===================== Attributs =====================
         self.image_layers = {}
         self.image_layer_widgets = {}
 
-        # SVG Layer (doit exister avant on_tab_changed)
-        self.svg_layer = SvgLayerWidget(choose_svg_file())
+        # SVG Layer (doit exister avant l'initialisation des docks et onglets)
+        self.svg_layer = SvgLayerWidget(file_path)
         self.layer = self.svg_layer
         self.tree = self.layer.tree
 
-        # Tabs
+        # ===================== Layout principal =====================
+        self.layout = QHBoxLayout()
+        # ===================== UI Components =====================
         self.init_tabs()
-
-        self.init_connections()
+        self.init_toolbar()
         self.init_preview_dock()
         self.init_tree_dock()
-        self.init_main_layout()
+
+        # ===================== Raccourcis =====================
+        self.init_connections()
 
         # Central widget
         container = QWidget()
-        container.setAutoFillBackground(True)
-        container.setPalette(self.init_palette())
         container.setLayout(self.layout)
         self.setCentralWidget(container)
 
-        # Toolbar
+        # 🟢 Définir l’onglet actif une fois tout prêt
+        self.on_tab_changed(0)
+
+    # ----------------- Fichier SVG -----------------
+    def choose_svg_file(self):
+        """Ouvre une boîte de dialogue pour choisir un fichier SVG au démarrage avec thème sombre."""
+        dialog = QFileDialog(
+            None,
+            "Select SVG model",
+            "",
+            "SVG Files (*.svg)"
+        )
+        dialog.setFileMode(QFileDialog.ExistingFile)
+
+        if dialog.exec_() == QDialog.Accepted:
+            return dialog.selectedFiles()[0]
+        else:
+            QMessageBox.warning(self, "Aucun fichier", "Aucun fichier SVG sélectionné. L'application va se fermer.")
+            sys.exit(0)
+
+    # ----------------- Onglets -----------------
+    def init_tabs(self):
+        self.tabs = QTabWidget()
+        self.colored_tabbar = CustomTabBar()
+        self.tabs.setTabBar(self.colored_tabbar)
+        self.tabs.currentChanged.connect(self.on_tab_changed)
+
+        # Encapsule le SVG layer dans le même wrapper que les images
+        svg_outer = self.layer.build_tab_container()
+        self.tabs.addTab(svg_outer, "SVG")
+        self.colored_tabbar.set_tab_color(0, Colors.svg_frame)
+        self.tabs.tabBar().setTabButton(0, QTabBar.RightSide, None)
+        self.layout.addWidget(self.tabs, 4)
+        # si tu as un onglet "+" ou autre, ajoute-le après
+
+    # ----------------- Toolbar -----------------
+    def init_toolbar(self):
         self.toolbar = CollapsibleToolbar(
             zoom_in_func=self.zoom_in_current_view,
             zoom_out_func=self.zoom_out_current_view
@@ -102,60 +116,15 @@ class MainWindow(QMainWindow):
         self.toolbar.duplicate_btn.clicked.connect(self.duplicate_via_toolbar_or_shortcut)
         self.layout.insertWidget(0, self.toolbar, 0)
 
-        # 🟢 Appel maintenant que tout est prêt
-        self.on_tab_changed(0)
-
-    def init_tabs(self):
-        self.tabs = QTabWidget()
-        self.colored_tabbar = CustomTabBar()
-        self.tabs.setTabBar(self.colored_tabbar)
-        self.tabs.currentChanged.connect(self.on_tab_changed)
-        self.tabs.addTab(self.layer, "SVG")
-        self.colored_tabbar.set_tab_color(0, QColor(45, 45, 45))
-        self.tabs.tabBar().setTabButton(0, QTabBar.RightSide, None)
-
-    def init_palette(self):
-        """Renvoie une palette sombre pour l'UI."""
-        palette = QPalette()
-        palette.setColor(QPalette.WindowText, Qt.white)
-        palette.setColor(QPalette.Base, QColor(53, 53, 53))
-        palette.setColor(QPalette.AlternateBase, QColor(35, 35, 35))
-        palette.setColor(QPalette.ToolTipBase, Qt.white)
-        palette.setColor(QPalette.ToolTipText, Qt.white)
-        palette.setColor(QPalette.Text, Qt.white)
-        palette.setColor(QPalette.Button, QColor(35, 35, 35))
-        palette.setColor(QPalette.ButtonText, Qt.white)
-        palette.setColor(QPalette.BrightText, Qt.red)
-        palette.setColor(QPalette.Link, QColor(42, 130, 218))
-        palette.setColor(QPalette.HighlightedText, Qt.black)
-        palette.setColor(QPalette.Window, QColor(35, 35, 35))
-        palette.setColor(QPalette.Highlight, QColor(0, 120, 215))
-        return palette
-
-    def get_active_layer(self):
-        return self.layer
-
-    def init_main_layout(self):
-        main_layout = QHBoxLayout()
-        main_layout.addWidget(self.tabs, 4)
-        self.layout = main_layout
-
+    # ----------------- Dock Preview -----------------
     def init_preview_dock(self):
         svg_preview = QGraphicsView()
         svg_preview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         svg_preview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # Désactive interaction utilisateur
         svg_preview.setInteractive(False)
         svg_preview.setDragMode(QGraphicsView.NoDrag)
         svg_preview.setFocusPolicy(Qt.NoFocus)
         svg_preview.setScene(self.layer.scene)
-        svg_preview.setStyleSheet("""
-            QGraphicsView {
-                background-color: #232323;   /* fond du QGraphicsView */
-                border: none;
-            }
-        """)
-        svg_preview.viewport().setStyleSheet("background-color: #232323;")
         svg_preview.fitInView(svg_preview.scene().sceneRect(), Qt.KeepAspectRatio)
 
         self.preview_dock = PreviewDock("SVG Preview", self, layer_getter=lambda: self.layer)
@@ -164,38 +133,27 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.preview_dock)
         self.preview_dock.hide()
 
+    # ----------------- Dock Tree -----------------
     def init_tree_dock(self):
-        # Dans __init__ ou init_layout
         self.tree_dock = QDockWidget(None, self)
-        self.tree_dock.setTitleBarWidget(QWidget())  # en remplaçant la titlebar par un widget vide
-        self.tree_dock.setAllowedAreas(Qt.RightDockWidgetArea)  # seulement à droite
-        self.tree_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)  # non détachable
+        self.tree_dock.setTitleBarWidget(QWidget())  # supprime la titlebar
+        self.tree_dock.setAllowedAreas(Qt.RightDockWidgetArea)
+        self.tree_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)  # pas détachable
         self.tree_dock.setWidget(self.tree)
-        self.tree_dock.setStyleSheet("""
-            QDockWidget {
-                background-color: #232323;      /* gris foncé pour le dock */
-                titlebar-close-icon: url(none); /* optionnel: masquer le bouton fermer */
-                titlebar-normal-icon: url(none);
-            }
-            QDockWidget::title {
-                background-color: #353535;      /* barre de titre un peu plus claire */
-                text-align: center;
-                color: white;
-                padding: 2px;
-            }
-        """)
         self.addDockWidget(Qt.RightDockWidgetArea, self.tree_dock)
-
-        # Optionnel : fixer la largeur du tree
         self.tree_dock.setFixedWidth(250)
 
-
+    # ----------------- Raccourcis -----------------
     def init_connections(self):
-
         QShortcut(QKeySequence("Ctrl+D"), self).activated.connect(self.duplicate_via_toolbar_or_shortcut)
         QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(self.export_active_layer_to_svg)
         QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(self.open_nesting_dialog)
         QShortcut(QKeySequence("Ctrl+C"), self).activated.connect(self.stop_nesting)
+
+    # ----------------- Utilitaires -----------------
+    def get_active_layer(self):
+        return self.layer
+
 
     def active_scene(self):
         current_tab = self.tabs.currentWidget()
@@ -228,15 +186,26 @@ class MainWindow(QMainWindow):
         else:
             debug_log("Export ignoré : calque actif inconnu")
 
+    def load_svg_layer(self, file_path):
+        layer_widget = SvgLayerWidget(file_path)
+
+        outer_frame = layer_widget.build_tab_container()
+
+        tab_name = os.path.basename(file_path)
+        index = self.tabs.count() - 1
+        self.tabs.insertTab(index, outer_frame, tab_name)
+
+        self.svg_layer_widgets[file_path] = layer_widget
+
+
     def load_image_layer(self, image_path):
         debug_log(f"[LOAD] ➜ Traitement de : {image_path}")
         supported_formats = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".pdf")
 
         if not image_path.lower().endswith(supported_formats):
-            DarkMessageBox.critical(self, "Erreur", f"❌ Format non supporté : {image_path}")
+            QMessageBox.critical(self, "Erreur", f"❌ Format non supporté : {image_path}")
             return
 
-        # 📄 Conversion ou chargement direct selon l'extension
         if image_path.lower().endswith(".pdf"):
             pixmap = self.render_pdf_to_pixmap(image_path)
         else:
@@ -244,32 +213,14 @@ class MainWindow(QMainWindow):
 
         if pixmap is None or pixmap.isNull():
             debug_log(f"[ERROR] ❌ Impossible de charger le fichier : {image_path}")
-            DarkMessageBox.critical(self, "Erreur", f"❌ Impossible de charger le fichier : {image_path}")
+            QMessageBox.critical(self, "Erreur", f"❌ Impossible de charger le fichier : {image_path}")
             return
 
         # 🎯 Création du widget calque image
         layer_widget = ImageLayerWidget(image_path=image_path, pixmap=pixmap)
 
-        # 🔶 Cadre extérieur coloré (bordure)
-        color = layer_widget.margin_color
-        debug_log(f"[OK] ✅ Couleur de bordure : {color.name()}")
-
-        # ⚙️ Construction du widget de l'onglet
-        outer_frame = QWidget()
-        outer_frame.setStyleSheet(f"background-color: {color.name()}; border-radius: 0px;")
-
-        inner_layout = QHBoxLayout(outer_frame)
-        inner_layout.setContentsMargins(8, 8, 8, 8)
-
-        inner_container = QWidget()
-        inner_container.setStyleSheet("background-color: none;")
-        content_layout = QHBoxLayout(inner_container)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.addWidget(layer_widget)
-        inner_layout.addWidget(inner_container)
-
-        # ⚠️ Fond gris foncé dans la vue
-        layer_widget.view.setBackgroundBrush(QBrush(QColor(53, 53, 53)))
+        # Encapsulation dans outer_frame via LayerWidget
+        outer_frame = layer_widget.build_tab_container()
 
         tab_name = os.path.basename(image_path)
 
@@ -278,7 +229,7 @@ class MainWindow(QMainWindow):
         self.tabs.insertTab(index, outer_frame, tab_name)
 
         # 🔹 Configurer le bouton de fermeture et la couleur via la TabBar
-        self.tabs.tabBar().add_image_tab(index, color)
+        self.tabs.tabBar().add_image_tab(index, layer_widget.margin_color)
 
         # 🔹 Enregistrer la référence
         self.image_layer_widgets[image_path] = layer_widget
@@ -317,7 +268,6 @@ class MainWindow(QMainWindow):
             print(f"[ERROR] PDF rendering failed: {e}")
             return None
 
-
     def get_current_view(self):
         current_widget = self.tabs.currentWidget()
         if isinstance(current_widget, SvgLayerWidget):
@@ -340,18 +290,28 @@ class MainWindow(QMainWindow):
             view.zoom_out()
 
     def on_tab_changed(self, index):
+        debug_log(f"tab  index : {index}")
+        # Récupère le widget d'onglet (wrapper ou layer direct)
+        widget = self.tabs.widget(index)
+        layer = getattr(widget, "layer_widget", widget)
+
+        # Masquer l'ancien arbre
         self.layer.tree.hide()
-        layer = self.get_layer_widget_from_tab(self.tabs.widget(index))
+
+        # Mettre à jour le layer courant
         self.layer = layer
-        layer.tree.show()
-        self.tree_dock.setWidget(layer.tree)
-        if isinstance(layer, SvgLayerWidget):
+        self.layer.tree.show()
+        self.tree_dock.setWidget(self.layer.tree)
+
+        # Gestion du dock de preview
+        if isinstance(self.layer, SvgLayerWidget):
             if not self.preview_dock.isFloating():
                 self.preview_dock.hide()
         else:
             if not self.preview_dock.isFloating():
                 self.preview_dock.show()
                 self.preview_dock.update_fit()
+
 
     def get_layer_widget_from_tab(self, tab_widget):
         """Renvoie l'ImageLayerWidget contenu dans l'onglet, ou None si introuvable."""
@@ -368,63 +328,33 @@ class MainWindow(QMainWindow):
         debug_log(f"Nombre d’éléments sélectionnés dans la scène : {len(selected_items)}")
 
         if not selected_items:
-            DarkMessageBox.information(self, "Info", "Aucun élément sélectionné à dupliquer.")
+            QMessageBox.information(self, "Info", "No selected shape to duplicate")
             debug_log("END")
             return
+        elif len(self.image_layer_widgets) == 0:
+            QMessageBox.warning(self, "Info", "No background layer loaded")
+            return None
 
-        # Cas 1 : l'utilisateur est sur le calque SVG
-        if isinstance(self.layer, SvgLayerWidget):
-            target_path = self.open_background_selection_dialog()
-            if target_path is None:
-                debug_log("Aucun calque cible sélectionné pour la duplication.")
-                debug_log("END")
-                return
+        elif isinstance(self.layer, SvgLayerWidget):
+            dialog = BackgroundSelectionDialog(self.image_layer_widgets, self)
+            target_path = dialog.get_selected_layer_path()
 
             target_layer_widget = self.image_layer_widgets.get(target_path)
-            if not target_layer_widget:
-                DarkMessageBox.warning(self, "Erreur", "Le calque cible sélectionné est invalide.")
-                debug_log("Erreur : Le calque cible sélectionné est invalide.")
-                debug_log("END")
-                return
 
             debug_log(f"✅ Duplication vers calque sélectionné $ {target_path}")
 
-        # Cas 2 : l'utilisateur est sur un calque image
         elif isinstance(self.layer, ImageLayerWidget):
             target_layer_widget = self.layer
             debug_log(f"✅ Duplication directe sur le calque actif $ {self.layer}")
 
         else:
             debug_log("❌ Onglet actif non reconnu (ni SVG, ni calque image)")
-            DarkMessageBox.warning(self, "Erreur", "L'onglet actif ne permet pas la duplication.")
-            debug_log("END")
             return
 
         # Exécution de la duplication
         perform_unique_duplication(selected_items, target_layer_widget, self.svg_layer)
         debug_log("END")
 
-    def open_background_selection_dialog(self):
-        selected = self.svg_layer.scene.selectedItems()
-        if not selected:
-            DarkMessageBox.information(self, "Info", "Sélectionnez un élément SVG à dupliquer.")
-            return None
-
-        if not self.image_layer_widgets:
-            DarkMessageBox.warning(self, "Aucun calque", "Aucun calque image n'est chargé.")
-            return None
-
-        dialog = BackgroundSelectionDialog(self.image_layer_widgets, self)
-        target_path = dialog.get_selected_layer_path()
-
-        if not target_path:
-            return None  # Annulé
-
-        if target_path in self.image_layer_widgets:
-            return target_path
-
-        DarkMessageBox.warning(self, "Erreur", "Calque image introuvable.")
-        return None
 
     def rotate_group(self, items, angle_degrees):
         if not items:
@@ -475,7 +405,7 @@ class MainWindow(QMainWindow):
     def stop_nesting(self):
         if hasattr(self.layer, 'worker'):
             self.layer.worker.nm.stop()
-            DarkMessageBox.information(self, "Nesting", "Nesting interrompu par l'utilisateur.")
+            QMessageBox.information(self, "Nesting", "Nesting interrompu par l'utilisateur.")
         else:
             debug_log("Aucun Nesting en cours sur le layer")
 

@@ -10,9 +10,10 @@
 #############################################################   ':::::::'   ####
 
 from PyQt5.QtWidgets import QGraphicsView, QApplication
-from PyQt5.QtGui import QPainter, QColor, QPen
+from PyQt5.QtGui import QPainter, QPen, QColor
 from PyQt5.QtCore import Qt, QRectF
 from core.model_items import GroupItem, DuplicataGroupItem
+from styles.colors import Colors
 from utils.debug import debug_log
 
 class ZoomableView(QGraphicsView):
@@ -20,6 +21,7 @@ class ZoomableView(QGraphicsView):
         super().__init__(layer.scene)
         self.layer = layer
         self.setRenderHint(QPainter.Antialiasing)
+        self.setObjectName("view")
         self.zoom_factor = 1.25
         self.newly_selected = {}
         self._last_pan_point = None
@@ -55,7 +57,7 @@ class SvgView(ZoomableView):
         item = self.itemAt(self._last_pan_point)
         if item:
             item = item.parentItem()
-            item.closed_item.setPen(QColor(128, 0, 128))
+            item.closed_item.setPen(QColor(Colors.preselection))
             self.newly_selected[item.element_id] = item
 
     def mouseMoveEvent(self, event):
@@ -65,7 +67,7 @@ class SvgView(ZoomableView):
                 self.layer.scene.removeItem(self._rubber_band_rect)
                 self._rubber_band_rect = None
             rect = QRectF(self.mapToScene(self._last_pan_point), self.mapToScene(event.pos())).normalized()
-            pen = QPen(QColor(128, 0, 128), 1, Qt.DashLine)  # couleur bleue, style tireté
+            pen = QPen(QColor(Colors.preselection), 1, Qt.DashLine)  # couleur bleue, style tireté
             self._rubber_band_rect = self.layer.scene.addRect(rect, pen)
             ################################################################
             for item in self.newly_selected.values():
@@ -73,7 +75,7 @@ class SvgView(ZoomableView):
             self.newly_selected = {}
             items_in_rect = [item for item in self.layer.scene.items(rect, Qt.IntersectsItemShape) if isinstance(item, GroupItem)]
             for item in items_in_rect:
-                item.closed_item.setPen(QColor(128, 0, 128))
+                item.closed_item.setPen(QColor(Colors.preselection))
                 self.newly_selected[item.element_id] = item
 
     def mouseReleaseEvent(self, event):
@@ -119,14 +121,14 @@ class ImageView(ZoomableView):
             item = item.parentItem()
         if ctrl_pressed:
             if item:
-                item.closed_item.setPen(QColor(128, 0, 128))
+                item.closed_item.setPen(QColor(Colors.preselection))
                 self.newly_selected[item.element_id] = item
         elif item:
             if item.isSelected():
                 self.move = True
                 super().mousePressEvent(event)
             else:
-                item.closed_item.setPen(QColor(128, 0, 128))
+                item.closed_item.setPen(QColor(Colors.preselection))
                 self.newly_selected[item.element_id] = item
         else:
             self.layer.scene.clearSelection()
@@ -135,14 +137,14 @@ class ImageView(ZoomableView):
     def mouseMoveEvent(self, event):
         if self._last_pan_point:
             if self.move:
-                super().mousePressEvent(event)
+                super().mouseMoveEvent(event)
             else:
                 ####################- Rubber Band Rectangle -###################
                 if self._rubber_band_rect:
                     self.layer.scene.removeItem(self._rubber_band_rect)
                     self._rubber_band_rect = None
                 rect = QRectF(self.mapToScene(self._last_pan_point), self.mapToScene(event.pos())).normalized()
-                pen = QPen(QColor(128, 0, 128), 1, Qt.DashLine)  # couleur bleue, style tireté
+                pen = QPen(QColor(Colors.preselection), 1, Qt.DashLine)
                 self._rubber_band_rect = self.layer.scene.addRect(rect, pen)
                 ################################################################
 
@@ -151,7 +153,7 @@ class ImageView(ZoomableView):
                 self.newly_selected = {}
                 items_in_rect = [item for item in self.layer.scene.items(rect, Qt.IntersectsItemShape) if isinstance(item, DuplicataGroupItem)]
                 for item in items_in_rect:
-                    item.closed_item.setPen(QColor(128, 0, 128))
+                    item.closed_item.setPen(QColor(Colors.preselection))
                     self.newly_selected[item.element_id] = item
 
     def mouseReleaseEvent(self, event):

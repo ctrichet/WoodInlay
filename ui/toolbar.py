@@ -18,6 +18,7 @@ from PyQt5.QtCore import QSize
 class CollapsibleToolbar(QWidget):
     def __init__(self, zoom_in_func, zoom_out_func):
         super().__init__()
+        self.setObjectName("CollapsibleToolbar")
         self.zoom_in_func = zoom_in_func
         self.zoom_out_func = zoom_out_func
 
@@ -25,10 +26,7 @@ class CollapsibleToolbar(QWidget):
         layout = QVBoxLayout(self.content_widget)
         layout.setContentsMargins(0, 5, 0, 5)
         layout.setSpacing(2)
-        self.content_widget.setStyleSheet("""
-            background-color: #353535;
-            border-radius: 4px;
-        """)
+        self.content_widget.setObjectName("toolbar_content")
 
         duplicate_icon = QIcon("./icons/duplicate.svg")
         self.duplicate_btn = QPushButton()

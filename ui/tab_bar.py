@@ -1,24 +1,27 @@
 #############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
+#|                                                              |(:)|||||      #
 #|   ui/tab_bar.py                                              !!!!!!|||
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
 #|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|                                                              :::::(|):      #
 #############################################################   ':::::::'   ####
 
-from PyQt5.QtWidgets import (
-    QTabBar, QStyleOptionTab, QStyle, QFileDialog, QDialog, QToolButton
-)
-from PyQt5.QtGui import QPainter, QColor, QBrush, QPen
 from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QPainter, QColor, QBrush, QPen
+from PyQt5.QtWidgets import (
+    QTabBar, QStyleOptionTab, QStyle, QFileDialog, QDialog, QToolButton,
+    QMessageBox,
+)
 
-from ui.dialogs import DarkFileDialog, DarkMessageBox
-from ui.image_layer import ImageLayerWidget
 from core.model_items import DuplicataGroupItem
+from ui.image_layer import ImageLayerWidget
+from styles.colors import Colors
+
 from utils.debug import debug_log
+
 
 class CustomTabBar(QTabBar):
     _window = None
@@ -52,13 +55,14 @@ class CustomTabBar(QTabBar):
     def add_plus_tab(self):
         """Ajoute l'onglet spécial + à la fin."""
         self.addTab("+")
-        self.set_tab_color(self.count() - 1, QColor("#CCCCCC"))
+        self.set_tab_color(self.count() - 1, QColor(Colors.plus_tab))
 
     def add_image_tab(self, index: int, color: QColor):
         """Ajoute seulement le bouton de fermeture et la couleur de l'onglet."""
         self.set_tab_color(index, color)
 
         close_btn = QToolButton(self)
+        close_btn.setObjectName("close_btn")
         close_btn.setIcon(self.style().standardIcon(QStyle.SP_TitleBarCloseButton))
         close_btn.setAutoRaise(True)
         close_btn.clicked.connect(lambda _, i=index: self.close_tab(i))
@@ -75,7 +79,7 @@ class CustomTabBar(QTabBar):
         for item in image_layer_widget.scene.items():
             if isinstance(item, DuplicataGroupItem):
                 tree_item = self._window.svg_layer.tree_items_by_id[item.element_id]
-                tree_item.setBackground(0, QBrush(QColor(35, 35, 35)))
+                tree_item.setBackground(0, QBrush(QColor(Colors.alternate_base)))
                 # Supprimer le masque associé
                 if item.mask_item and item.mask_item.scene():
                     item.mask_item.scene().removeItem(item.mask_item)
@@ -115,7 +119,7 @@ class CustomTabBar(QTabBar):
 
     def on_plus_tab_clicked(self):
         """Action quand on clique sur le +"""
-        dialog = DarkFileDialog(self, "Charger un ou plusieurs calques de fond")
+        dialog = QFileDialog(self, "Select image to use as cutting layer")
         dialog.setFileMode(QFileDialog.ExistingFiles)  # Permet de sélectionner plusieurs fichiers
         dialog.setNameFilter("Images (*.png *.jpg *.bmp *.pdf)")
 
@@ -129,7 +133,7 @@ class CustomTabBar(QTabBar):
             ]
 
             if not files_to_open:
-                DarkMessageBox.information(self, "Info", "Tous les fichiers sélectionnés sont déjà ouverts.")
+                QMessageBox.information(self, "Info", "File already open")
                 return
 
             for f in files_to_open:
@@ -143,7 +147,7 @@ class CustomTabBar(QTabBar):
         for index in range(self.count()):
             self.initStyleOption(option, index)
             rect = self.tabRect(index)
-            color = self._tab_colors.get(index, QColor("gray"))
+            color = QColor(self._tab_colors.get(index, Colors.plus_tab))
 
             # 🔹 Fond de l’onglet
             painter.save()
