@@ -139,7 +139,11 @@ class DuplicataGroupItem(CompositeGroupItem):
 
             # Rotation groupée
             from ui.main_window import MainWindow
-            selected_items = [item for item in MainWindow._instance.active_scene().selectedItems() if isinstance(item, DuplicataGroupItem)]
+            selected_items = [
+                item for item in
+                MainWindow._instance.get_layer_widget_from_tab(MainWindow._instance.tabs.currentWidget()).scene.selectedItems()
+                if isinstance(item, DuplicataGroupItem)
+            ]
             MainWindow._instance.rotate_group(selected_items, rotation_angle)
 
             self._last_mouse_pos = event.scenePos()
@@ -171,7 +175,6 @@ class DuplicataGroupItem(CompositeGroupItem):
         self.setCursor(Qt.OpenHandCursor)
         super().mouseReleaseEvent(event)
         debug_log(f"[DuplicataGroupItem] 🖱️ Mouse released — actualisation du masque pour {self.element_id}")
-        self.mask()
 
     def mask(self):
         def rotate_vector(vec: QPointF, angle_degrees: float) -> QPointF:

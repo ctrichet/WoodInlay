@@ -50,4 +50,4 @@ class PreviewDock(QDockWidget):
     def update_fit(self):
         view = self.widget()
         if view and view.scene():
-            view.fitInView(view.scene().sceneRect(), Qt.KeepAspectRatio)
+            view.fitInView(view.scene().itemsBoundingRect(), Qt.KeepAspectRatio)

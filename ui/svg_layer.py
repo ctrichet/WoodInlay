@@ -32,6 +32,8 @@ class SvgLayerWidget(LayerWidget):
         super().__init__()
         self.init_view(SvgView(self))
         self.parse_svg(file_path)
+        self.view.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
+        self.view.update_padding()
 
     def parse_svg(self, svg_file):
         try:

@@ -62,6 +62,7 @@ class ImageLayerWidget(LayerWidget):
             self.load_pixmap(pixmap)
         elif image_path:
             self.load_image(image_path)
+        self.view.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
 
     def on_placement(self, idx, rot, dx, dy):
         # Ceci est exécuté dans le thread principal, safe pour Qt
@@ -83,8 +84,7 @@ class ImageLayerWidget(LayerWidget):
         self.background_pixmap = pixmap.copy()
         self.scene.clear()
         self.scene.addPixmap(pixmap)
-        self.scene.setSceneRect(QRectF(pixmap.rect()))
-        self.view.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
+        self.view.update_padding()
 
     def export_svg(self):
         if not self.image_path:

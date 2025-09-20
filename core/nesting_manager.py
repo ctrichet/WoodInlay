@@ -219,6 +219,9 @@ class NestingManager(QObject):
 
     def collect(self):
         scene = self.layer.scene
+        if len(scene.selectedItems()) == 0:
+            debug_log("Aucun polygone pour GA")
+            return
         for item in scene.items():
             if not isinstance(item, DuplicataGroupItem):
                 debug_log(f"type item : {type(item)}")
@@ -239,9 +242,6 @@ class NestingManager(QObject):
             debug_log("Aire de la bin insuffisante")
             return
 
-        if len(self.polygons_nested) == 0:
-            debug_log("Aucun polygone pour GA")
-            return
         self._separate_by_repulsion()
 
     def is_valid_individual(self, rotations, positions):

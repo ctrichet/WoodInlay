@@ -125,12 +125,12 @@ class MainWindow(QMainWindow):
         svg_preview.setDragMode(QGraphicsView.NoDrag)
         svg_preview.setFocusPolicy(Qt.NoFocus)
         svg_preview.setScene(self.layer.scene)
-        svg_preview.fitInView(svg_preview.scene().sceneRect(), Qt.KeepAspectRatio)
 
         self.preview_dock = PreviewDock("SVG Preview", self, layer_getter=lambda: self.layer)
         self.preview_dock.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
         self.preview_dock.setWidget(svg_preview)
         self.addDockWidget(Qt.RightDockWidgetArea, self.preview_dock)
+        self.preview_dock.update_fit()
         self.preview_dock.hide()
 
     # ----------------- Dock Tree -----------------

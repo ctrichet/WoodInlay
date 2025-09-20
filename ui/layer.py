@@ -52,7 +52,7 @@ class LayerWidget(QWidget):
 
         # Layout vertical avec marges pour voir le cadre
         layout = QVBoxLayout()
-        layout.setContentsMargins(4, 4, 4, 4)  # laisse apparaître le "cadre"
+        layout.setContentsMargins(13, 13, 0, 0)  # laisse apparaître le "cadre"
         layout.addWidget(self.view)
         self.setLayout(layout)
 
@@ -62,18 +62,14 @@ class LayerWidget(QWidget):
 
         # cadre extérieur (wrapper) — on garde le background existant pour l'effet "cadre"
         outer_frame = QWidget()
-        outer_frame.setObjectName(f"layer_outer_{id(self)}")
         # Attache une référence au LayerWidget pour pouvoir le retrouver depuis l'onglet
         outer_frame.layer_widget = self
-        outer_frame.setStyleSheet(f"background-color: {tab_color.name()};")
+        outer_frame.setStyleSheet(f"background-color: {tab_color.name()}; border-radius: 6px;")
 
         inner_layout = QHBoxLayout(outer_frame)
-        inner_layout.setObjectName("layer_frame")
-        inner_layout.setContentsMargins(14, 14, 14, 14)
 
         inner_container = QWidget()
         content_layout = QHBoxLayout(inner_container)
-        content_layout.setContentsMargins(0, 0, 0, 0)
         # on ajoute le LayerWidget lui-même dans le container interne
         content_layout.addWidget(self)
         inner_layout.addWidget(inner_container)

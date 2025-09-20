@@ -14,14 +14,14 @@ from abc import ABC, abstractmethod
 class Colors(ABC):
     header              = "#232323"
     base                = "#202020"
-    alternate_base      = "#353535"
+    alternate_base      = "#363636"
     highlight           = "#3399FF"
     highlighted_text    = "#FFFFFF"
     text                = "#FFFFFF"
     outline             = "#000000"
     preselection        = "#800080"
     plus_tab            = "#BEBEBE"
-    svg_frame           = "#292929"
+    svg_frame           = "#303030"
 
     separation          = "#404040"
     button_hover        = "#005A9E"
