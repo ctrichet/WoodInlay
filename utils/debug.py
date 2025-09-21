@@ -1,6 +1,18 @@
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   utils/debug.py                                             !!!!!!|||
+#|                                                         /||||||||||||/.:::::,
+#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+#|                                                        ||||||/.::::::::::::::
+#|   Created: 2025/09/21 14:32:45 ctrichet                 \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 14:32:45 ctrichet                      :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
 import inspect
 
 DEBUG = True
+
 
 def debug_log(message=""):
     """Affiche un message de debug avec nom de fonction et numéro de ligne."""

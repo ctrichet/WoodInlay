@@ -25,6 +25,7 @@ def get_commit_author():
 # Core : insertion / mise à jour du header
 # ============================================================
 
+
 def make_header(filename, author, email, created, updated):
     # Lignes fixes de l’ASCII art
     line1 = "#|===========================================================   .=<|||>=.   ==|#"
@@ -45,11 +46,13 @@ def make_header(filename, author, email, created, updated):
     # Created / Updated : alignement exact sur 20 caractères pour author_id
     author_id = author.lower().replace(" ", "")
     line7 = f"#|   Created: {created} {author_id:<24} \\|||/.::::::::::::::'"
-    line8 = f"#|   Updated: {updated} {author_id:<29} :::......"
+    line8 = f"#|   Updated: 2025/09/21 14:32:45 ctrichet                      :::......
     line9 = "#|                                                              :::::(|):     |#"
     line10 = "#|===========================================================   ':::::::'   ==|#"
 
-    header = "\n".join([line1, line2, file_line, line4, line5, line6, line7, line8, line9, line10])
+    header = "\n".join(
+        [line1, line2, file_line, line4, line5, line6, line7, line8, line9, line10]
+    )
     return header
 
 

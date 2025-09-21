@@ -1,3 +1,14 @@
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/svg_preview.py                                          !!!!!!|||
+#|                                                         /||||||||||||/.:::::,
+#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+#|                                                        ||||||/.::::::::::::::
+#|   Created: 2025/09/21 14:32:45 ctrichet                 \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 14:32:45 ctrichet                      :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
 from PyQt5.QtWidgets import QDockWidget, QWidget, QToolButton, QHBoxLayout, QLabel
 from PyQt5.QtCore import Qt
 from ui.svg_layer import SvgLayerWidget
