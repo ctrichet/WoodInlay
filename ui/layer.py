@@ -1,19 +1,37 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
-#|   ui/layer.py                                                !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/layer.py                                                !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(0)|||||      #
+# |   ui/layer.py                                                !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QBrush, QPainter
 from PyQt5.QtWidgets import (
-    QWidget, QGraphicsScene, QTreeWidget, QHBoxLayout, QApplication,
-    QGraphicsView, QAbstractItemView, QVBoxLayout,
+    QWidget,
+    QGraphicsScene,
+    QTreeWidget,
+    QHBoxLayout,
+    QApplication,
+    QGraphicsView,
+    QAbstractItemView,
+    QVBoxLayout,
 )
 
 from styles.colors import Colors
@@ -28,7 +46,9 @@ class LayerWidget(QWidget):
         super().__init__()
         self.tree_items_by_id = {}
         self.items_by_id = {}
-        self.margin_color = QColor(Colors.svg_frame)  # couleur par défaut si non redéfinie
+        self.margin_color = QColor(
+            Colors.svg_frame
+        )  # couleur par défaut si non redéfinie
 
         # TreeWidget associé au layer
         tree = QTreeWidget()
@@ -41,7 +61,6 @@ class LayerWidget(QWidget):
         # Scene et vue
         self.scene = QGraphicsScene()
         self.tree.itemClicked.connect(self.on_tree_item_clicked)
-
 
     def init_view(self, view: QGraphicsView):
         """Initialise la view du layer avec le background brush et layout."""
@@ -64,7 +83,9 @@ class LayerWidget(QWidget):
         outer_frame = QWidget()
         # Attache une référence au LayerWidget pour pouvoir le retrouver depuis l'onglet
         outer_frame.layer_widget = self
-        outer_frame.setStyleSheet(f"background-color: {tab_color.name()}; border-radius: 6px;")
+        outer_frame.setStyleSheet(
+            f"background-color: {tab_color.name()}; border-radius: 6px;"
+        )
 
         inner_layout = QHBoxLayout(outer_frame)
 
@@ -78,6 +99,7 @@ class LayerWidget(QWidget):
 
     def on_tree_item_clicked(self, item, column):
         debug_log()
+
         def update_item_and_children_selection(item, selected):
             item.setSelected(selected)
             if item.childCount():
@@ -120,6 +142,3 @@ class LayerWidget(QWidget):
                 return
         parent.setSelected(True)
         self.set_parent_selection(parent)
-
-
-

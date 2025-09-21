@@ -1,12 +1,24 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
-#|   ui/main_window.py                                          !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   core/nesting_manager.py                                    !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/16 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/09/06 15:57:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(0)|||||      #
+# |   ui/main_window.py                                          !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/16 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/09/06 15:57:00 ctrichet                      :::......
+# |                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 import random
 import pulp
@@ -17,11 +29,17 @@ from shapely.ops import unary_union
 import numpy as np
 import copy as cp
 from PyQt5.QtCore import (
-    QPointF, QThread, QSemaphore, pyqtSignal, QObject, Qt,
+    QPointF,
+    QThread,
+    QSemaphore,
+    pyqtSignal,
+    QObject,
+    Qt,
 )
 
 from PyQt5.QtGui import (
-    QImage, qAlpha,
+    QImage,
+    qAlpha,
 )
 
 from core.model_items import DuplicataGroupItem
@@ -43,11 +61,11 @@ class NestingWorker(QThread):
     def run(self):
         self.nm.nest()
 
+
 class NestingManager(QObject):
     placement_signal = pyqtSignal(int, float, float, float)
     max_repulsion_iters = 50
     max_attempts_per_ind = 30
-
 
     def transformed_polygons_indiv(self, rotations, positions):
         """
@@ -87,7 +105,6 @@ class NestingManager(QObject):
 
         return rotations, positions
 
-
     def genetic_nesting(self):
         # génération initiale
         population = [self._random_individual() for _ in range(self.population_size)]
@@ -104,7 +121,9 @@ class NestingManager(QObject):
             generation += 1
             scored_pop = []
             for rotations, positions in population:
-                polygons_transformed = self.transformed_polygons_indiv(rotations, positions)
+                polygons_transformed = self.transformed_polygons_indiv(
+                    rotations, positions
+                )
                 score = self.fitness(polygons_transformed)
                 scored_pop.append((score, (rotations, positions)))
 
@@ -120,7 +139,7 @@ class NestingManager(QObject):
                 for i, (rot, (dx, dy)) in enumerate(zip(rotations, positions)):
                     self.emit_placement(i, rot, dx, dy)
 
-            elites = [ind for _, ind in scored_pop[:self.elite_size]]
+            elites = [ind for _, ind in scored_pop[: self.elite_size]]
 
             # nouvelle population
             new_population = elites.copy()
@@ -132,7 +151,6 @@ class NestingManager(QObject):
                     new_population.append(child)
             population = new_population
 
-
     def __init__(self, config, layer):
         super().__init__()
         self.bin_margin: float = 2
@@ -143,7 +161,9 @@ class NestingManager(QObject):
         self.elite_size: int = 5
         self.lp_refine_top: int = 3
         self.lp_delta: float = 5.0
-        self.fitness_method = "areaTopLeft" # gravity/area/area_top/quadratic/quadratic_top
+        self.fitness_method = (
+            "areaTopLeft"  # gravity/area/area_top/quadratic/quadratic_top
+        )
         self.quadratic_fitness_coeff: float = 0.5
         self.allowed_rotations = [rot for rot in range(0, 360, self.mutation_rotation)]
 
@@ -176,14 +196,13 @@ class NestingManager(QObject):
 
         n = len(rotations1)
         # point de croisement aléatoire
-        cp = random.randint(1, n-1)
+        cp = random.randint(1, n - 1)
 
         # combiner rotations et positions
         child_rotations = rotations1[:cp] + rotations2[cp:]
         child_positions = positions1[:cp] + positions2[cp:]
 
         return (child_rotations, child_positions)
-
 
     def _mutate(self, rotations, positions):
         """
@@ -202,8 +221,12 @@ class NestingManager(QObject):
             # mutation translation
             if random.random() < 0.5:  # 50% chance de muter
                 # ajustement aléatoire limité
-                dx += random.uniform(-self.mutation_translation, self.mutation_translation)
-                dy += random.uniform(-self.mutation_translation, self.mutation_translation)
+                dx += random.uniform(
+                    -self.mutation_translation, self.mutation_translation
+                )
+                dy += random.uniform(
+                    -self.mutation_translation, self.mutation_translation
+                )
 
                 # garder polygone à l'intérieur du bin
                 minx, miny, maxx, maxy = self.bin_polygon_with_margins.bounds
@@ -215,7 +238,6 @@ class NestingManager(QObject):
             new_positions.append((dx, dy))
 
         return (new_rotations, new_positions)
-
 
     def collect(self):
         scene = self.layer.scene
@@ -236,7 +258,9 @@ class NestingManager(QObject):
                 poly_shapely_with_margin = poly_shapely.buffer(self.spacing / 2)
                 self.polygons_nested_with_spacing.append(poly_shapely_with_margin)
             elif poly_shapely.within(self.bin_polygon_with_margins):
-                self.polygons_fixed_with_spacing.append(poly_shapely.buffer(self.spacing / 2))
+                self.polygons_fixed_with_spacing.append(
+                    poly_shapely.buffer(self.spacing / 2)
+                )
 
         if not self.check_bin_capacity:
             debug_log("Aire de la bin insuffisante")
@@ -253,7 +277,12 @@ class NestingManager(QObject):
         n = len(self.polygons_nested)
         placed_polys = []
         for idx in range(n):
-            poly = affinity.rotate(self.polygons_nested_with_spacing[idx], rotations[idx], origin="centroid", use_radians=False)
+            poly = affinity.rotate(
+                self.polygons_nested_with_spacing[idx],
+                rotations[idx],
+                origin="centroid",
+                use_radians=False,
+            )
             dx, dy = positions[idx]
             poly = affinity.translate(poly, xoff=dx, yoff=dy)
 
@@ -274,13 +303,10 @@ class NestingManager(QObject):
             placed_polys.append(poly)
         return True
 
-
     def nest(self):
         self.collect()
         self.genetic_nesting()
         return
-
-
 
     def _separate_by_repulsion(self) -> bool:
         """
@@ -324,7 +350,9 @@ class NestingManager(QObject):
                             scale = np.sqrt(inter.area)
                             dx, dy = v_unit * scale
                             # limiter le déplacement
-                            dx, dy = np.clip([dx, dy], -max_disp_per_iter, max_disp_per_iter)
+                            dx, dy = np.clip(
+                                [dx, dy], -max_disp_per_iter, max_disp_per_iter
+                            )
                             displacements[i] += np.array([dx, dy])
 
                 # Collision avec autres polygones
@@ -346,8 +374,12 @@ class NestingManager(QObject):
                             dx_i, dy_i = v_unit * scale
                             dx_j, dy_j = -v_unit * scale
                             # limiter
-                            dx_i, dy_i = np.clip([dx_i, dy_i], -max_disp_per_iter, max_disp_per_iter)
-                            dx_j, dy_j = np.clip([dx_j, dy_j], -max_disp_per_iter, max_disp_per_iter)
+                            dx_i, dy_i = np.clip(
+                                [dx_i, dy_i], -max_disp_per_iter, max_disp_per_iter
+                            )
+                            dx_j, dy_j = np.clip(
+                                [dx_j, dy_j], -max_disp_per_iter, max_disp_per_iter
+                            )
                             displacements[i] += np.array([dx_i, dy_i])
                             displacements[j] += np.array([dx_j, dy_j])
 
@@ -373,7 +405,9 @@ class NestingManager(QObject):
             for i in range(n):
                 dx, dy = displacements[i]
                 if dx != 0.0 or dy != 0.0:
-                    placed_polys[i] = affinity.translate(placed_polys[i], xoff=dx, yoff=dy)
+                    placed_polys[i] = affinity.translate(
+                        placed_polys[i], xoff=dx, yoff=dy
+                    )
                     rot, old_dx, old_dy = final_transforms[i]
                     final_transforms[i] = (rot, old_dx + dx, old_dy + dy)
 
@@ -395,7 +429,6 @@ class NestingManager(QObject):
 
         debug_log("Initial separation failed after max iterations.")
         return False
-
 
     def _repulsion_vector(self, poly, fixed):
         """
@@ -528,7 +561,9 @@ class NestingManager(QObject):
                     max_right_bound = right_bound
                 if bottom_bound > max_bottom_bound:
                     max_bottom_bound = bottom_bound
-            ratio = max(max_right_bound / max_bottom_bound, max_bottom_bound / max_right_bound)
+            ratio = max(
+                max_right_bound / max_bottom_bound, max_bottom_bound / max_right_bound
+            )
             malus = 1 + self.quadratic_fitness_coeff * (ratio - 1) ** 2
             return max_right_bound * max_bottom_bound * malus
 
@@ -564,7 +599,9 @@ class NestingManager(QObject):
                 alpha = qAlpha(img.pixel(x, y))
                 if alpha > 0:  # pixel non transparent
                     # créer un petit rectangle 1x1 pour chaque pixel opaque
-                    poly = Polygon([(x, y), (x+1, y), (x+1, y+1), (x, y+1), (x, y)])
+                    poly = Polygon(
+                        [(x, y), (x + 1, y), (x + 1, y + 1), (x, y + 1), (x, y)]
+                    )
                     polygons.append(poly)
                     visited.add((x, y))
 
@@ -573,7 +610,6 @@ class NestingManager(QObject):
 
         return unary_union(polygons).buffer(-self.bin_margin + self.spacing / 2)
 
-
     def apply_placement(self, idx, rotation, dx, dy):
         debug_log(f"rot = {rotation}, dx  = {dx}, dy = {dy}")
         item = self.polygon_idx_to_item[idx]
@@ -581,7 +617,9 @@ class NestingManager(QObject):
         poly = self.polygons_nested[idx]
         if self.polygons_nested_semaphores:
             self.polygons_nested_semaphores[idx].release()
-        poly_transformed = affinity.rotate(poly, rotation, origin="centroid", use_radians=False)
+        poly_transformed = affinity.rotate(
+            poly, rotation, origin="centroid", use_radians=False
+        )
         poly_transformed = affinity.translate(poly_transformed, xoff=dx, yoff=dy)
 
         element = item.closed_item.path().elementAt(0)
@@ -598,4 +636,3 @@ class NestingManager(QObject):
 
         item.setPos(item.pos() + delta)
         item.mask()
-

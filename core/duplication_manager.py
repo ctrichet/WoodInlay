@@ -1,12 +1,24 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
-#|   core/duplication_manager.py                                !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   core/duplication_manager.py                                !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(0)|||||      #
+# |   core/duplication_manager.py                                !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 
 import os
@@ -16,6 +28,7 @@ from PyQt5.QtCore import Qt
 
 from core.model_items import GroupItem, DuplicataGroupItem
 from utils.debug import debug_log
+
 
 def perform_unique_duplication(selected_items, layer, svg_layer):
     """Effectue une duplication spécifique d'items."""
@@ -36,7 +49,9 @@ def perform_unique_duplication(selected_items, layer, svg_layer):
                         break
                     else:
                         parent_item_copy = QTreeWidgetItem([parent_item.text(0)])
-                        tree_item_copy.setData(0, Qt.UserRole, parent_item.data(0, Qt.UserRole))
+                        tree_item_copy.setData(
+                            0, Qt.UserRole, parent_item.data(0, Qt.UserRole)
+                        )
                         layer.tree_items_by_id[parent_tree_id] = parent_item_copy
                         parent_item_copy.addChild(tree_item_copy)
                         parent_item = parent_item.parent()
@@ -64,19 +79,23 @@ def perform_unique_duplication(selected_items, layer, svg_layer):
             layer.scene.addItem(group_item.duplicata)
             debug_log(f"Adding duplicata {item_id} to layer {layer.scene.name}")
             tree_item = svg_layer.tree_items_by_id[item_id]
-            debug_log(f"Nombre de colonnes dans le treeWidget : {tree_item.columnCount()}")
+            debug_log(
+                f"Nombre de colonnes dans le treeWidget : {tree_item.columnCount()}"
+            )
             tree_item.setBackground(0, QBrush(layer.margin_color))
 
             for col in range(tree_item.columnCount()):
                 tree_item.setBackground(col, QBrush(layer.margin_color))
 
-            debug_log(f"Coloring item {item_id} with color {layer.margin_color} of layer {layer.scene.name}")
+            debug_log(
+                f"Coloring item {item_id} with color {layer.margin_color} of layer {layer.scene.name}"
+            )
             parent_tree_item = tree_item.parent()
             if parent_tree_item:
                 parent_items[parent_tree_item.data(0, Qt.UserRole)] = parent_tree_item
             group_item.duplicata.mask()
 
-    #Coloration des parents dans l'arbre SVG
+    # Coloration des parents dans l'arbre SVG
     for tree_item in parent_items.values():
         while tree_item:
             all_children = True

@@ -1,12 +1,24 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
-#|   ui/__init__.py                                             !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/__init__.py                                             !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(0)|||||      #
+# |   ui/__init__.py                                             !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 
 from .main_window import MainWindow
@@ -15,7 +27,8 @@ from .image_layer import ImageLayerWidget
 from .views import ImageView, SvgView
 from .toolbar import CollapsibleToolbar
 from .dialogs import (
-    BackgroundSelectionDialog, NestingConfigDialog,
+    BackgroundSelectionDialog,
+    NestingConfigDialog,
 )
 from .svg_preview import PreviewDock
 from .tab_bar import CustomTabBar
@@ -24,8 +37,7 @@ from .layer import LayerWidget
 
 __all__ = [
     "MainWindow",
-    "LayerWidget"
-    "SvgLayerWidget",
+    "LayerWidget" "SvgLayerWidget",
     "ImageLayerWidget",
     "SvgView",
     "ImageView",

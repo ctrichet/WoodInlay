@@ -1,29 +1,42 @@
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   styles/colors.py                                           !!!!!!||| 
+#|                                                         /||||||||||||/.:::::,
+#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+#|                                                        ||||||/.::::::::::::::
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
 
 from abc import ABC, abstractmethod
 
-class Colors(ABC):
-    header              = "#232323"
-    base                = "#202020"
-    alternate_base      = "#363636"
-    highlight           = "#3399FF"
-    highlighted_text    = "#FFFFFF"
-    text                = "#FFFFFF"
-    outline             = "#000000"
-    preselection        = "#800080"
-    plus_tab            = "#BEBEBE"
-    svg_frame           = "#303030"
 
-    separation          = "#404040"
-    button_hover        = "#005A9E"
-    button_pressed      = "#003F6B"
-    tab_hover           = "#007ACC"
-    dock_title          = "#FFFFFF"
-    tooltip_bg          = "#2E2E2E"
-    tooltip_text        = "#FFFFFF"
+class Colors(ABC):
+    header = "#232323"
+    base = "#202020"
+    alternate_base = "#363636"
+    highlight = "#3399FF"
+    highlighted_text = "#FFFFFF"
+    text = "#FFFFFF"
+    outline = "#000000"
+    preselection = "#800080"
+    plus_tab = "#BEBEBE"
+    svg_frame = "#303030"
+
+    separation = "#404040"
+    button_hover = "#005A9E"
+    button_pressed = "#003F6B"
+    tab_hover = "#007ACC"
+    dock_title = "#FFFFFF"
+    tooltip_bg = "#2E2E2E"
+    tooltip_text = "#FFFFFF"
 
     @abstractmethod
     def __init__(self):
         pass
+
 
 def styleSheet():
     return f"""

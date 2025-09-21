@@ -7,6 +7,7 @@ from datetime import datetime
 # Helpers pour récupérer auteur/email du commit
 # ============================================================
 
+
 def get_commit_author():
     try:
         author = subprocess.check_output(
@@ -31,7 +32,7 @@ HEADER_TEMPLATE = """#|=========================================================
 #|   By: {author} <{email}>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: {created} {author_id:<20} \|||/.::::::::::::::'
-#|   Updated: {updated} {author_id:<20}      :::......
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
 #|                                                              :::::(|):     |#
 #|===========================================================   ':::::::'   ==|#
 """
@@ -40,6 +41,7 @@ HEADER_TEMPLATE = """#|=========================================================
 # ============================================================
 # Core : insertion / mise à jour du header
 # ============================================================
+
 
 def update_header(path, author, email):
     now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")

@@ -1,13 +1,25 @@
 #|===========================================================   .=<|||>=.   ==|#
 #|                                                              |(:)|||||     |#
-#|   ui/svg_layer.py                                            !!!!!!|||
+#|   ui/svg_layer.py                                            !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
 #|                                                              :::::(|):     |#
 #|===========================================================   ':::::::'   ==|#
+
+
+# |===========================================================   .=<|||>=.   ==|#
+# |                                                              |(:)|||||     |#
+# |   ui/svg_layer.py                                            !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(|):     |#
+# |===========================================================   ':::::::'   ==|#
 
 import re
 import uuid
@@ -15,8 +27,10 @@ import xml.etree.ElementTree as ET
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import(
-    QWidget, QVBoxLayout, QTreeWidgetItem,
+from PyQt5.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QTreeWidgetItem,
 )
 
 from core.model_items import PathItem, GroupItem
@@ -57,8 +71,8 @@ class SvgLayerWidget(LayerWidget):
         def is_closed(d):
             if not d:
                 return False
-            d_cleaned = re.sub(r'[\s,]+', ' ', d.strip()).upper()
-            return bool(re.search(r'M[^MZ]*Z', d_cleaned))
+            d_cleaned = re.sub(r"[\s,]+", " ", d.strip()).upper()
+            return bool(re.search(r"M[^MZ]*Z", d_cleaned))
 
         element_id = ensure_id(element)
         tree_item = QTreeWidgetItem()
@@ -80,8 +94,15 @@ class SvgLayerWidget(LayerWidget):
                 continue
 
             if tag in {
-                "text", "image", "use", "style", "title", "desc", "defs",
-                "clippath", "marker"
+                "text",
+                "image",
+                "use",
+                "style",
+                "title",
+                "desc",
+                "defs",
+                "clippath",
+                "marker",
             }:
                 debug_log(f"[IGNORE] Élement ignoré : {tag}")
                 continue

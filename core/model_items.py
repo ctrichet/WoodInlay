@@ -1,27 +1,50 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
-#|   core/model_items.py                                        !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   core/model_items.py                                        !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(0)|||||      #
+# |   core/model_items.py                                        !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 from math import hypot
 from PyQt5.QtWidgets import (
-    QGraphicsPathItem, QGraphicsItemGroup, QGraphicsPixmapItem, QStyle,
+    QGraphicsPathItem,
+    QGraphicsItemGroup,
+    QGraphicsPixmapItem,
+    QStyle,
     QGraphicsSceneMouseEvent,
 )
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import (
-    QPainterPath, QImage, QPixmap, QPainter, QPen, QPolygonF, QColor, QPalette,
+    QPainterPath,
+    QImage,
+    QPixmap,
+    QPainter,
+    QPen,
+    QPolygonF,
+    QColor,
+    QPalette,
 )
 from styles.colors import Colors
 from math import radians, cos, sin, atan2, degrees
 from svg.path import parse_path
 
 from utils.debug import debug_log
+
 
 class PathItem(QGraphicsPathItem):
     def __init__(self, d_string, parent=None):
@@ -39,14 +62,16 @@ class PathItem(QGraphicsPathItem):
                         path.lineTo(e.end.real, e.end.imag)
                     elif e.__class__.__name__ == "CubicBezier":
                         path.cubicTo(
-                            e.control1.real, e.control1.imag,
-                            e.control2.real, e.control2.imag,
-                            e.end.real, e.end.imag
+                            e.control1.real,
+                            e.control1.imag,
+                            e.control2.real,
+                            e.control2.imag,
+                            e.end.real,
+                            e.end.imag,
                         )
                     elif e.__class__.__name__ == "QuadraticBezier":
                         path.quadTo(
-                            e.control.real, e.control.imag,
-                            e.end.real, e.end.imag
+                            e.control.real, e.control.imag, e.end.real, e.end.imag
                         )
                     elif e.__class__.__name__ == "Arc":
                         path.lineTo(e.end.real, e.end.imag)
@@ -65,6 +90,7 @@ class PathItem(QGraphicsPathItem):
         pen = QPen(color)
         super().setPen(pen)
 
+
 class CompositeGroupItem(QGraphicsItemGroup):
     def __init__(self, element_id, closed_item, open_items, parent=None):
         super().__init__(parent)
@@ -75,9 +101,7 @@ class CompositeGroupItem(QGraphicsItemGroup):
             for item in open_items:
                 self.addToGroup(item)
         self.setFlags(
-            self.ItemIsSelectable |
-            self.ItemIsMovable |
-            self.ItemSendsGeometryChanges
+            self.ItemIsSelectable | self.ItemIsMovable | self.ItemSendsGeometryChanges
         )
 
     def shape(self):
@@ -85,7 +109,9 @@ class CompositeGroupItem(QGraphicsItemGroup):
 
     def paint(self, painter, option, widget=None):
         if option.state & QStyle.State_Selected:
-            painter.setPen(QPen(QColor(Colors.highlight)))  # couleur sélection personnalisée
+            painter.setPen(
+                QPen(QColor(Colors.highlight))
+            )  # couleur sélection personnalisée
         else:
             painter.setPen((QPen(QColor(Colors.outline))))
         super().paint(painter, option, widget)
@@ -96,6 +122,7 @@ class GroupItem(CompositeGroupItem):
         super().__init__(element_id, closed_item, open_items, parent)
         self.duplicata = None
         self.setFlags(self.ItemIsSelectable)
+
 
 class DuplicataGroupItem(CompositeGroupItem):
     @staticmethod
@@ -118,13 +145,15 @@ class DuplicataGroupItem(CompositeGroupItem):
         super().__init__(groupItem.element_id, closed_dup, open_items, parent)
         self.layer = layer
         self.mask_item_pos = groupItem.pos()
-        debug_log(f"groupItem.closed_item.boundingRect().topLeft() = {groupItem.closed_item.boundingRect().topLeft()}")
-        debug_log(f"groupItem.closed_item.sceneBoundingRect().topLeft() = {groupItem.closed_item.sceneBoundingRect().topLeft()}")
+        debug_log(
+            f"groupItem.closed_item.boundingRect().topLeft() = {groupItem.closed_item.boundingRect().topLeft()}"
+        )
+        debug_log(
+            f"groupItem.closed_item.sceneBoundingRect().topLeft() = {groupItem.closed_item.sceneBoundingRect().topLeft()}"
+        )
         self.mask_item = None
         self.setFlags(
-            self.ItemIsSelectable |
-            self.ItemIsMovable |
-            self.ItemSendsGeometryChanges
+            self.ItemIsSelectable | self.ItemIsMovable | self.ItemSendsGeometryChanges
         )
         self._right_dragging = False
         self._last_mouse_pos = None
@@ -139,9 +168,12 @@ class DuplicataGroupItem(CompositeGroupItem):
 
             # Rotation groupée
             from ui.main_window import MainWindow
+
             selected_items = [
-                item for item in
-                MainWindow._instance.get_layer_widget_from_tab(MainWindow._instance.tabs.currentWidget()).scene.selectedItems()
+                item
+                for item in MainWindow._instance.get_layer_widget_from_tab(
+                    MainWindow._instance.tabs.currentWidget()
+                ).scene.selectedItems()
                 if isinstance(item, DuplicataGroupItem)
             ]
             MainWindow._instance.rotate_group(selected_items, rotation_angle)
@@ -174,7 +206,9 @@ class DuplicataGroupItem(CompositeGroupItem):
 
         self.setCursor(Qt.OpenHandCursor)
         super().mouseReleaseEvent(event)
-        debug_log(f"[DuplicataGroupItem] 🖱️ Mouse released — actualisation du masque pour {self.element_id}")
+        debug_log(
+            f"[DuplicataGroupItem] 🖱️ Mouse released — actualisation du masque pour {self.element_id}"
+        )
 
     def mask(self):
         def rotate_vector(vec: QPointF, angle_degrees: float) -> QPointF:
@@ -184,6 +218,7 @@ class DuplicataGroupItem(CompositeGroupItem):
             return QPointF(x, y)
 
         from ui.main_window import MainWindow
+
         main_window = MainWindow._instance
         if self.mask_item:
             main_window.svg_layer.scene.removeItem(self.mask_item)
@@ -252,7 +287,6 @@ class DuplicataGroupItem(CompositeGroupItem):
 
         return transformed_polygon
 
-
     def to_shapely_polygon(self, tolerance: float = 0.002):
         """
         Convertit le QPolygonF en shapely.geometry.Polygon.
@@ -266,5 +300,3 @@ class DuplicataGroupItem(CompositeGroupItem):
 
         coords = [(pt.x(), pt.y()) for pt in qpoly]
         return Polygon(coords)
-
-

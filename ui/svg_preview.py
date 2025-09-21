@@ -1,12 +1,27 @@
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/svg_preview.py                                          !!!!!!||| 
+#|                                                         /||||||||||||/.:::::,
+#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+#|                                                        ||||||/.::::::::::::::
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
 from PyQt5.QtWidgets import QDockWidget, QWidget, QToolButton, QHBoxLayout, QLabel
 from PyQt5.QtCore import Qt
 from ui.svg_layer import SvgLayerWidget
+
 
 class PreviewDock(QDockWidget):
     def __init__(self, title: str, parent=None, layer_getter=None):
         super().__init__(title, parent)
         self.layer_getter = layer_getter
-        self.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.setFeatures(
+            QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable
+        )
 
         # Crée une titlebar custom
         titlebar = QWidget()
@@ -25,7 +40,6 @@ class PreviewDock(QDockWidget):
 
         titlebar.setLayout(layout)
         self.setTitleBarWidget(titlebar)
-
 
         # Connecter le signal topLevelChanged
         self.topLevelChanged.connect(self.on_top_level_changed)

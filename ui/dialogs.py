@@ -1,22 +1,46 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
-#|   ui/dialogs.py                                              !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/dialogs.py                                              !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(0)|||||      #
+# |   ui/dialogs.py                                              !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 
 import os
 from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox, QListView,
-    QDoubleSpinBox, QComboBox, QPushButton, QDialogButtonBox,QTreeView,
-    QLineEdit, QMessageBox, QCheckBox,
+    QDialog,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QSpinBox,
+    QListView,
+    QDoubleSpinBox,
+    QComboBox,
+    QPushButton,
+    QDialogButtonBox,
+    QTreeView,
+    QLineEdit,
+    QMessageBox,
+    QCheckBox,
 )
 from PyQt5.QtGui import QPalette
 from .delegates import ColorBackgroundDelegate
+
 
 class NestingConfigDialog(QDialog):
     def __init__(self, parent=None):
@@ -43,13 +67,9 @@ class NestingConfigDialog(QDialog):
 
         # Rotations autorisées
         self.rotation_combo = QComboBox()
-        self.rotation_combo.addItems([
-            "Pas de rotation",
-            "90°",
-            "180°",
-            "Libre (15° pas)",
-            "Libre (5° pas)"
-        ])
+        self.rotation_combo.addItems(
+            ["Pas de rotation", "90°", "180°", "Libre (15° pas)", "Libre (5° pas)"]
+        )
         layout.addWidget(QLabel("Rotations autorisées :"))
         layout.addWidget(self.rotation_combo)
 
@@ -70,10 +90,7 @@ class NestingConfigDialog(QDialog):
 
         # Type d’optimisation
         self.optimization_combo = QComboBox()
-        self.optimization_combo.addItems([
-            "Gravity (compact)",
-            "Bounding box"
-        ])
+        self.optimization_combo.addItems(["Gravity (compact)", "Bounding box"])
         layout.addWidget(QLabel("Type d’optimisation :"))
         layout.addWidget(self.optimization_combo)
 
@@ -110,7 +127,6 @@ class NestingConfigDialog(QDialog):
         }
 
 
-
 class BackgroundSelectionDialog(QDialog):
     def __init__(self, image_layer_widgets, parent=None):
         super().__init__(parent)
@@ -145,7 +161,9 @@ class BackgroundSelectionDialog(QDialog):
         layout.addWidget(self.combo)
         self.combo.currentIndexChanged.connect(self.update_combo_color)
 
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self
+        )
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
         layout.addWidget(button_box)
@@ -155,7 +173,6 @@ class BackgroundSelectionDialog(QDialog):
             index = self.combo.currentIndex()
             return self.combo.itemData(index)
         return None
-
 
     def update_combo_color(self, index):
         color = self.layer_colors[index]

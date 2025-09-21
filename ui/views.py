@@ -1,16 +1,32 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(:)|||||      #
-#|   ui/views.py                                                !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/views.py                                                !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(|):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(:)|||||      #
+# |   ui/views.py                                                !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(|):      #
 #############################################################   ':::::::'   ####
 
 from PyQt5.QtWidgets import (
-    QGraphicsView, QApplication, QScrollBar, QProxyStyle, QStyleOptionComplex,
+    QGraphicsView,
+    QApplication,
+    QScrollBar,
+    QProxyStyle,
+    QStyleOptionComplex,
     QStyle,
 )
 from PyQt5.QtGui import QPainter, QPen, QColor
@@ -20,6 +36,7 @@ from core.model_items import GroupItem, DuplicataGroupItem
 from styles.colors import Colors
 
 from utils.debug import debug_log
+
 
 class ZoomableView(QGraphicsView):
 
@@ -96,18 +113,23 @@ class ZoomableView(QGraphicsView):
         if self.layer.scene.items():
             bounds = self.scene().itemsBoundingRect()
             scale = self.transform().m11()
-            #debug_log(f"Bounding_Rect : width = {bounds.width()}, height = {bounds.height()}")
-            horizontal_padding  = self.viewport().width() - scale * bounds.width() * 0.5
-            vertical_padding    = self.viewport().height() - scale * bounds.height() * 0.5
+            # debug_log(f"Bounding_Rect : width = {bounds.width()}, height = {bounds.height()}")
+            horizontal_padding = self.viewport().width() - scale * bounds.width() * 0.5
+            vertical_padding = self.viewport().height() - scale * bounds.height() * 0.5
             if horizontal_padding < 0:
                 horizontal_padding = 0
             if vertical_padding < 0:
                 vertical_padding = 0
-            padded_rect = bounds.adjusted(-horizontal_padding, -vertical_padding,
-                                          horizontal_padding, vertical_padding)
+            padded_rect = bounds.adjusted(
+                -horizontal_padding,
+                -vertical_padding,
+                horizontal_padding,
+                vertical_padding,
+            )
             self.layer.scene.setSceneRect(padded_rect)
 
     ############################################################################
+
 
 class SvgView(ZoomableView):
     def __init__(self, layer):
@@ -131,14 +153,22 @@ class SvgView(ZoomableView):
             if self._rubber_band_rect:
                 self.layer.scene.removeItem(self._rubber_band_rect)
                 self._rubber_band_rect = None
-            rect = QRectF(self.mapToScene(self._last_pan_point), self.mapToScene(event.pos())).normalized()
-            pen = QPen(QColor(Colors.preselection), 1, Qt.DashLine)  # couleur bleue, style tireté
+            rect = QRectF(
+                self.mapToScene(self._last_pan_point), self.mapToScene(event.pos())
+            ).normalized()
+            pen = QPen(
+                QColor(Colors.preselection), 1, Qt.DashLine
+            )  # couleur bleue, style tireté
             self._rubber_band_rect = self.layer.scene.addRect(rect, pen)
             ################################################################
             for item in self.newly_selected.values():
                 item.closed_item.setPen()
             self.newly_selected = {}
-            items_in_rect = [item for item in self.layer.scene.items(rect, Qt.IntersectsItemShape) if isinstance(item, GroupItem)]
+            items_in_rect = [
+                item
+                for item in self.layer.scene.items(rect, Qt.IntersectsItemShape)
+                if isinstance(item, GroupItem)
+            ]
             for item in items_in_rect:
                 item.closed_item.setPen(QColor(Colors.preselection))
                 self.newly_selected[item.element_id] = item
@@ -172,7 +202,9 @@ class SvgView(ZoomableView):
         self.newly_selected = {}
         self._last_pan_point = None
 
+
 ################################################################################
+
 
 class ImageView(ZoomableView):
     def __init__(self, layer):
@@ -209,7 +241,9 @@ class ImageView(ZoomableView):
                 if self._rubber_band_rect:
                     self.layer.scene.removeItem(self._rubber_band_rect)
                     self._rubber_band_rect = None
-                rect = QRectF(self.mapToScene(self._last_pan_point), self.mapToScene(event.pos())).normalized()
+                rect = QRectF(
+                    self.mapToScene(self._last_pan_point), self.mapToScene(event.pos())
+                ).normalized()
                 pen = QPen(QColor(Colors.preselection), 1, Qt.DashLine)
                 self._rubber_band_rect = self.layer.scene.addRect(rect, pen)
                 ################################################################
@@ -217,7 +251,11 @@ class ImageView(ZoomableView):
                 for item in self.newly_selected.values():
                     item.closed_item.setPen()
                 self.newly_selected = {}
-                items_in_rect = [item for item in self.layer.scene.items(rect, Qt.IntersectsItemShape) if isinstance(item, DuplicataGroupItem)]
+                items_in_rect = [
+                    item
+                    for item in self.layer.scene.items(rect, Qt.IntersectsItemShape)
+                    if isinstance(item, DuplicataGroupItem)
+                ]
                 for item in items_in_rect:
                     item.closed_item.setPen(QColor(Colors.preselection))
                     self.newly_selected[item.element_id] = item

@@ -1,19 +1,30 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(0)|||||      #
-#|   ui/toolbar.py                                              !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/toolbar.py                                              !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(0):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(0)|||||      #
+# |   ui/toolbar.py                                              !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(0):      #
 #############################################################   ':::::::'   ####
 
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QToolButton
-)
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QToolButton
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize
+
 
 class CollapsibleToolbar(QWidget):
     def __init__(self, zoom_in_func, zoom_out_func):
@@ -48,7 +59,6 @@ class CollapsibleToolbar(QWidget):
         self.zoom_out_btn.setIconSize(QSize(24, 24))
         self.zoom_out_btn.setFlat(True)
         layout.addWidget(self.zoom_out_btn)
-
 
         handle_icon = QIcon("./icons/handle.svg")
         self.toggle_btn = QToolButton()

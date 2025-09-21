@@ -1,18 +1,35 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(:)|||||      #
-#|   ui/tab_bar.py                                              !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/tab_bar.py                                              !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(|):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(:)|||||      #
+# |   ui/tab_bar.py                                              !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(|):      #
 #############################################################   ':::::::'   ####
 
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPainter, QColor, QBrush, QPen
 from PyQt5.QtWidgets import (
-    QTabBar, QStyleOptionTab, QStyle, QFileDialog, QDialog, QToolButton,
+    QTabBar,
+    QStyleOptionTab,
+    QStyle,
+    QFileDialog,
+    QDialog,
+    QToolButton,
     QMessageBox,
 )
 
@@ -45,7 +62,9 @@ class CustomTabBar(QTabBar):
             return size
 
         tab_width = total_width / count
-        tab_width = max(CustomTabBar._min_width, min(CustomTabBar._max_width, tab_width))
+        tab_width = max(
+            CustomTabBar._min_width, min(CustomTabBar._max_width, tab_width)
+        )
 
         if index == count - 1:  # onglet "+"
             tab_width = CustomTabBar._min_width
@@ -69,7 +88,6 @@ class CustomTabBar(QTabBar):
         self.setTabButton(index, QTabBar.RightSide, close_btn)
         self.close_buttons[index] = close_btn
 
-
     def close_tab(self, index: int):
 
         self._window.tabs.blockSignals(True)
@@ -90,9 +108,13 @@ class CustomTabBar(QTabBar):
 
         # 2️⃣ Nettoyer les références dans les dictionnaires
         image_path = next(
-            (p for p, w in self._window.image_layer_widgets.items() if w == image_layer_widget),
-            None
-                )
+            (
+                p
+                for p, w in self._window.image_layer_widgets.items()
+                if w == image_layer_widget
+            ),
+            None,
+        )
         if image_path:
             self._window.image_layer_widgets.pop(image_path, None)
         current_index = self.parent().currentIndex()
@@ -120,7 +142,9 @@ class CustomTabBar(QTabBar):
     def on_plus_tab_clicked(self):
         """Action quand on clique sur le +"""
         dialog = QFileDialog(self, "Select image to use as cutting layer")
-        dialog.setFileMode(QFileDialog.ExistingFiles)  # Permet de sélectionner plusieurs fichiers
+        dialog.setFileMode(
+            QFileDialog.ExistingFiles
+        )  # Permet de sélectionner plusieurs fichiers
         dialog.setNameFilter("Images (*.png *.jpg *.bmp *.pdf)")
 
         if dialog.exec_() == QDialog.Accepted:
@@ -128,8 +152,7 @@ class CustomTabBar(QTabBar):
 
             # ⚡ Filtrer les fichiers déjà ouverts
             files_to_open = [
-                f for f in files
-                if f not in CustomTabBar._window.image_layer_widgets
+                f for f in files if f not in CustomTabBar._window.image_layer_widgets
             ]
 
             if not files_to_open:
@@ -138,7 +161,6 @@ class CustomTabBar(QTabBar):
 
             for f in files_to_open:
                 CustomTabBar._window.load_image_layer(f)
-
 
     def paintEvent(self, event):
         painter = QPainter(self)

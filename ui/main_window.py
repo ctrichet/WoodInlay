@@ -1,12 +1,24 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(:)|||||      #
-#|   ui/main_window.py                                          !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/main_window.py                                          !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-#|                                                              :::::(|):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(:)|||||      #
+# |   ui/main_window.py                                          !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
+# |                                                              :::::(|):      #
 #############################################################   ':::::::'   ####
 
 import os, fitz, sys
@@ -16,8 +28,17 @@ from math import radians, cos, sin
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QKeySequence, QPixmap, QImage, QBrush, QColor
 from PyQt5.QtWidgets import (
-    QMainWindow, QTabWidget, QDialog, QFileDialog, QMessageBox, QWidget,
-    QGraphicsView, QHBoxLayout, QShortcut, QTabBar, QDockWidget,
+    QMainWindow,
+    QTabWidget,
+    QDialog,
+    QFileDialog,
+    QMessageBox,
+    QWidget,
+    QGraphicsView,
+    QHBoxLayout,
+    QShortcut,
+    QTabBar,
+    QDockWidget,
 )
 
 from core.model_items import DuplicataGroupItem
@@ -78,18 +99,17 @@ class MainWindow(QMainWindow):
     # ----------------- Fichier SVG -----------------
     def choose_svg_file(self):
         """Ouvre une boîte de dialogue pour choisir un fichier SVG au démarrage avec thème sombre."""
-        dialog = QFileDialog(
-            None,
-            "Select SVG model",
-            "",
-            "SVG Files (*.svg)"
-        )
+        dialog = QFileDialog(None, "Select SVG model", "", "SVG Files (*.svg)")
         dialog.setFileMode(QFileDialog.ExistingFile)
 
         if dialog.exec_() == QDialog.Accepted:
             return dialog.selectedFiles()[0]
         else:
-            QMessageBox.warning(self, "Aucun fichier", "Aucun fichier SVG sélectionné. L'application va se fermer.")
+            QMessageBox.warning(
+                self,
+                "Aucun fichier",
+                "Aucun fichier SVG sélectionné. L'application va se fermer.",
+            )
             sys.exit(0)
 
     # ----------------- Onglets -----------------
@@ -111,9 +131,11 @@ class MainWindow(QMainWindow):
     def init_toolbar(self):
         self.toolbar = CollapsibleToolbar(
             zoom_in_func=self.zoom_in_current_view,
-            zoom_out_func=self.zoom_out_current_view
+            zoom_out_func=self.zoom_out_current_view,
         )
-        self.toolbar.duplicate_btn.clicked.connect(self.duplicate_via_toolbar_or_shortcut)
+        self.toolbar.duplicate_btn.clicked.connect(
+            self.duplicate_via_toolbar_or_shortcut
+        )
         self.layout.insertWidget(0, self.toolbar, 0)
 
     # ----------------- Dock Preview -----------------
@@ -126,8 +148,12 @@ class MainWindow(QMainWindow):
         svg_preview.setFocusPolicy(Qt.NoFocus)
         svg_preview.setScene(self.layer.scene)
 
-        self.preview_dock = PreviewDock("SVG Preview", self, layer_getter=lambda: self.layer)
-        self.preview_dock.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
+        self.preview_dock = PreviewDock(
+            "SVG Preview", self, layer_getter=lambda: self.layer
+        )
+        self.preview_dock.setAllowedAreas(
+            Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea
+        )
         self.preview_dock.setWidget(svg_preview)
         self.addDockWidget(Qt.RightDockWidgetArea, self.preview_dock)
         self.preview_dock.update_fit()
@@ -145,15 +171,20 @@ class MainWindow(QMainWindow):
 
     # ----------------- Raccourcis -----------------
     def init_connections(self):
-        QShortcut(QKeySequence("Ctrl+D"), self).activated.connect(self.duplicate_via_toolbar_or_shortcut)
-        QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(self.export_active_layer_to_svg)
-        QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(self.open_nesting_dialog)
+        QShortcut(QKeySequence("Ctrl+D"), self).activated.connect(
+            self.duplicate_via_toolbar_or_shortcut
+        )
+        QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(
+            self.export_active_layer_to_svg
+        )
+        QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(
+            self.open_nesting_dialog
+        )
         QShortcut(QKeySequence("Ctrl+C"), self).activated.connect(self.stop_nesting)
 
     # ----------------- Utilitaires -----------------
     def get_active_layer(self):
         return self.layer
-
 
     def active_scene(self):
         current_tab = self.tabs.currentWidget()
@@ -197,13 +228,14 @@ class MainWindow(QMainWindow):
 
         self.svg_layer_widgets[file_path] = layer_widget
 
-
     def load_image_layer(self, image_path):
         debug_log(f"[LOAD] ➜ Traitement de : {image_path}")
         supported_formats = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".pdf")
 
         if not image_path.lower().endswith(supported_formats):
-            QMessageBox.critical(self, "Erreur", f"❌ Format non supporté : {image_path}")
+            QMessageBox.critical(
+                self, "Erreur", f"❌ Format non supporté : {image_path}"
+            )
             return
 
         if image_path.lower().endswith(".pdf"):
@@ -213,7 +245,9 @@ class MainWindow(QMainWindow):
 
         if pixmap is None or pixmap.isNull():
             debug_log(f"[ERROR] ❌ Impossible de charger le fichier : {image_path}")
-            QMessageBox.critical(self, "Erreur", f"❌ Impossible de charger le fichier : {image_path}")
+            QMessageBox.critical(
+                self, "Erreur", f"❌ Impossible de charger le fichier : {image_path}"
+            )
             return
 
         # 🎯 Création du widget calque image
@@ -312,7 +346,6 @@ class MainWindow(QMainWindow):
                 self.preview_dock.show()
                 self.preview_dock.update_fit()
 
-
     def get_layer_widget_from_tab(self, tab_widget):
         """Renvoie l'ImageLayerWidget contenu dans l'onglet, ou None si introuvable."""
         if isinstance(tab_widget, LayerWidget):
@@ -325,7 +358,9 @@ class MainWindow(QMainWindow):
     def duplicate_via_toolbar_or_shortcut(self):
 
         selected_items = self.svg_layer.tree.selectedItems()
-        debug_log(f"Nombre d’éléments sélectionnés dans la scène : {len(selected_items)}")
+        debug_log(
+            f"Nombre d’éléments sélectionnés dans la scène : {len(selected_items)}"
+        )
 
         if not selected_items:
             QMessageBox.information(self, "Info", "No selected shape to duplicate")
@@ -354,7 +389,6 @@ class MainWindow(QMainWindow):
         # Exécution de la duplication
         perform_unique_duplication(selected_items, target_layer_widget, self.svg_layer)
         debug_log("END")
-
 
     def rotate_group(self, items, angle_degrees):
         if not items:
@@ -390,7 +424,6 @@ class MainWindow(QMainWindow):
             item.setPos(new_pos)
             item.setRotation(item.rotation() + angle_degrees)
 
-
     def open_nesting_dialog(self):
         dialog = NestingConfigDialog(self)
         if dialog.exec_() == QDialog.Accepted:
@@ -403,12 +436,13 @@ class MainWindow(QMainWindow):
         return None
 
     def stop_nesting(self):
-        if hasattr(self.layer, 'worker'):
+        if hasattr(self.layer, "worker"):
             self.layer.worker.nm.stop()
-            QMessageBox.information(self, "Nesting", "Nesting interrompu par l'utilisateur.")
+            QMessageBox.information(
+                self, "Nesting", "Nesting interrompu par l'utilisateur."
+            )
         else:
             debug_log("Aucun Nesting en cours sur le layer")
-
 
     def active_image_layer(self):
         """Retourne l’ImageLayerWidget actif si l’onglet courant est une image, None sinon."""

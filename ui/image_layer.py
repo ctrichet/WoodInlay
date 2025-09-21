@@ -1,12 +1,24 @@
-#############################################################   .=<|||>=.   ####
-#|                                                              |(:)|||||      #
-#|   ui/image_layer.py                                          !!!!!!|||
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/image_layer.py                                          !!!!!!||| 
 #|                                                         /||||||||||||/.:::::,
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/08/12 15:43:01 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/08/12 15:43:01 ctrichet                      :::......
-#|                                                              :::::(|):      #
+#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
+
+#############################################################   .=<|||>=.   ####
+# |                                                              |(:)|||||      #
+# |   ui/image_layer.py                                          !!!!!!|||
+# |                                                         /||||||||||||/.:::::,
+# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+# |                                                        ||||||/.::::::::::::::
+# |   Created: 2025/08/12 15:43:01 ctrichet                 \|||/.::::::::::::::'
+# |   Updated: 2025/08/12 15:43:01 ctrichet                      :::......
+# |                                                              :::::(|):      #
 #############################################################   ':::::::'   ####
 
 import os
@@ -14,9 +26,7 @@ import xml.etree.ElementTree as ET
 
 from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtGui import QPixmap, QPainter, QColor
-from PyQt5.QtWidgets import (
-    QVBoxLayout, QFileDialog, QDialog, QMessageBox
-)
+from PyQt5.QtWidgets import QVBoxLayout, QFileDialog, QDialog, QMessageBox
 
 from core.model_items import DuplicataGroupItem
 from ui.layer import LayerWidget
@@ -53,8 +63,10 @@ class ImageLayerWidget(LayerWidget):
 
         original_addItem = self.scene.addItem
         self.scene.addItem = lambda item: (
-            debug_log(f"[Scene: {self.scene.name}] addItem: id={id(item)}, type={type(item)}"),
-            original_addItem(item)
+            debug_log(
+                f"[Scene: {self.scene.name}] addItem: id={id(item)}, type={type(item)}"
+            ),
+            original_addItem(item),
         )[1]
 
         self.background_pixmap = None
@@ -71,10 +83,11 @@ class ImageLayerWidget(LayerWidget):
     def load_image(self, path):
         pixmap = QPixmap(path)
         if pixmap.isNull():
-            QMessageBox.critical(self, "Erreur", f"Impossible de charger l’image : {path}")
+            QMessageBox.critical(
+                self, "Erreur", f"Impossible de charger l’image : {path}"
+            )
             return
         self.load_pixmap(pixmap)
-
 
     def load_pixmap(self, pixmap):
         if pixmap.isNull():
@@ -91,11 +104,9 @@ class ImageLayerWidget(LayerWidget):
             QMessageBox.warning(self, "Export SVG", "Aucune image de fond chargée.")
             return
 
-
-        svg_root = ET.Element("svg", {
-            "xmlns": "http://www.w3.org/2000/svg",
-            "version": "1.1"
-        })
+        svg_root = ET.Element(
+            "svg", {"xmlns": "http://www.w3.org/2000/svg", "version": "1.1"}
+        )
 
         for item in self.scene.items():
             if isinstance(item, DuplicataGroupItem):
@@ -103,13 +114,17 @@ class ImageLayerWidget(LayerWidget):
                 if not d_string:
                     continue
 
-                ET.SubElement(svg_root, "path", {
-                    "id": item.element_id,
-                    "d": d_string,
-                    "fill": "none",
-                    "stroke": "black",
-                    "stroke-width": "1"
-                })
+                ET.SubElement(
+                    svg_root,
+                    "path",
+                    {
+                        "id": item.element_id,
+                        "d": d_string,
+                        "fill": "none",
+                        "stroke": "black",
+                        "stroke-width": "1",
+                    },
+                )
 
         image_name = os.path.basename(self.image_path)
         base_name, _ = os.path.splitext(image_name)
