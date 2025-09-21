@@ -39,15 +39,16 @@ jobs:
       # Vérification si des modifications ont été faites
       - name: Verify changes
         id: verify
-        run: |
-          git diff --exit-code || echo "Code or headers need update"
+        run: git diff --exit-code || echo "Code or headers need update"
 
       # Commit et push uniquement si push direct (pas PR)
-      - name: Commit changes if direct push
+      - name: Commit and push changes if direct push
         if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
           git add .
           git commit -m "chore: auto-format and update headers" || echo "No changes to commit"
-          git push origin HEAD:${{ github.ref_name }}
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
