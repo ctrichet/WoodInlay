@@ -11,32 +11,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout complet avec branche suivie
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
 
+      # Setup Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # Installer Black
       - name: Install dependencies
-        run: |
-          pip install black
+        run: pip install black
 
+      # Formattage du code
       - name: Run Black
-        run: |
-          black .
+        run: black .
 
+      # Mise à jour des headers
       - name: Update headers
-        run: |
-          python scripts/headers.py
+        run: python scripts/headers.py
 
+      # Vérification si des modifications ont été faites
       - name: Verify changes
         id: verify
         run: |
           git diff --exit-code || echo "Code or headers need update"
 
-      # Only push commits automatically on direct push to develop, not on PR
+      # Commit et push uniquement si push direct (pas PR)
       - name: Commit changes if direct push
         if: github.event_name == 'push'
         run: |
@@ -44,4 +50,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "chore: auto-format and update headers" || echo "No changes to commit"
-          git push
+          git push origin HEAD:${{ github.ref_name }}
