@@ -74,12 +74,10 @@ def update_header(path, author, email):
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    header_start = "#|===========================================================   .=<|||>=.   ==|#"
+    header_start = "# |===========================================================   .=<|||>=.   ==|#"
 
-    # Vérifie si la première ligne correspond au header existant
     lines = content.splitlines()
     if lines and lines[0].strip() == header_start:
-        # Header déjà présent → mise à jour uniquement de "Updated"
         content = re.sub(
             r"(#\|\s*Updated: ).*",
             f"#|   Updated: {now} {author.lower().replace(' ',''):<29} :::......",
@@ -87,7 +85,6 @@ def update_header(path, author, email):
             count=1,
         )
     else:
-        # Pas de header → on insère un nouveau
         header = make_header(filename, author, email, now, now)
         content = header + "\n\n" + content
 
