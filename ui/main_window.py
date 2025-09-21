@@ -1,28 +1,4 @@
-#|===========================================================   .=<|||>=.   ==|#
-#|                                                              |(:)|||||     |#
-#|   ui/main_window.py                                          !!!!!!||| 
-#|                                                         /||||||||||||/.:::::,
-#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-#|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
-#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
-#|                                                              :::::(|):     |#
-#|===========================================================   ':::::::'   ==|#
-
-
-#############################################################   .=<|||>=.   ####
-# |                                                              |(:)|||||      #
-# |   ui/main_window.py                                          !!!!!!|||
-# |                                                         /||||||||||||/.:::::,
-# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-# |                                                        ||||||/.::::::::::::::
-# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-# |                                                              :::::(|):      #
-#############################################################   ':::::::'   ####
-
 import os, fitz, sys
-from typing import Optional
 from math import radians, cos, sin
 
 from PyQt5.QtCore import Qt, QPointF
@@ -41,7 +17,6 @@ from PyQt5.QtWidgets import (
     QDockWidget,
 )
 
-from core.model_items import DuplicataGroupItem
 from core.duplication_manager import perform_unique_duplication
 from core.nesting_manager import NestingWorker
 from ui.svg_layer import SvgLayerWidget

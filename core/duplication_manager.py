@@ -1,32 +1,8 @@
-#|===========================================================   .=<|||>=.   ==|#
-#|                                                              |(:)|||||     |#
-#|   core/duplication_manager.py                                !!!!!!||| 
-#|                                                         /||||||||||||/.:::::,
-#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-#|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
-#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
-#|                                                              :::::(|):     |#
-#|===========================================================   ':::::::'   ==|#
-
-
-#############################################################   .=<|||>=.   ####
-# |                                                              |(0)|||||      #
-# |   core/duplication_manager.py                                !!!!!!|||
-# |                                                         /||||||||||||/.:::::,
-# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-# |                                                        ||||||/.::::::::::::::
-# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-# |                                                              :::::(0):      #
-#############################################################   ':::::::'   ####
-
-import os
 from PyQt5.QtWidgets import QTreeWidgetItem
 from PyQt5.QtGui import QBrush
 from PyQt5.QtCore import Qt
 
-from core.model_items import GroupItem, DuplicataGroupItem
+from core.model_items import DuplicataGroupItem
 from utils.debug import debug_log
 
 

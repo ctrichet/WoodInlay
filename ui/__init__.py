@@ -1,26 +1,3 @@
-#|===========================================================   .=<|||>=.   ==|#
-#|                                                              |(:)|||||     |#
-#|   ui/__init__.py                                             !!!!!!||| 
-#|                                                         /||||||||||||/.:::::,
-#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-#|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
-#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
-#|                                                              :::::(|):     |#
-#|===========================================================   ':::::::'   ==|#
-
-
-#############################################################   .=<|||>=.   ####
-# |                                                              |(0)|||||      #
-# |   ui/__init__.py                                             !!!!!!|||
-# |                                                         /||||||||||||/.:::::,
-# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-# |                                                        ||||||/.::::::::::::::
-# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-# |                                                              :::::(0):      #
-#############################################################   ':::::::'   ####
-
 from .main_window import MainWindow
 from .svg_layer import SvgLayerWidget
 from .image_layer import ImageLayerWidget
@@ -32,12 +9,13 @@ from .dialogs import (
 )
 from .svg_preview import PreviewDock
 from .tab_bar import CustomTabBar
-from .delegates import ColorBackgroundDelegate, TreeItemHighlightDelegate
+from .delegates import ColorBackgroundDelegate
 from .layer import LayerWidget
 
 __all__ = [
     "MainWindow",
-    "LayerWidget" "SvgLayerWidget",
+    "LayerWidget",
+    "SvgLayerWidget",
     "ImageLayerWidget",
     "SvgView",
     "ImageView",
@@ -46,7 +24,6 @@ __all__ = [
     "NestingConfigDialog",
     "CustomTabBar",
     "ColorBackgroundDelegate",
-    "TreeItemHighlightDelegate",
     "LayerWidget",
     "PreviewDock",
 ]

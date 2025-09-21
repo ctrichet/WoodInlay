@@ -1,40 +1,15 @@
-#|===========================================================   .=<|||>=.   ==|#
-#|                                                              |(:)|||||     |#
-#|   core/nesting_manager.py                                    !!!!!!||| 
-#|                                                         /||||||||||||/.:::::,
-#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-#|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
-#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
-#|                                                              :::::(|):     |#
-#|===========================================================   ':::::::'   ==|#
-
-
-#############################################################   .=<|||>=.   ####
-# |                                                              |(0)|||||      #
-# |   ui/main_window.py                                          !!!!!!|||
-# |                                                         /||||||||||||/.:::::,
-# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-# |                                                        ||||||/.::::::::::::::
-# |   Created: 2025/08/16 11:43:00 ctrichet                 \|||/.::::::::::::::'
-# |   Updated: 2025/09/06 15:57:00 ctrichet                      :::......
-# |                                                              :::::(0):      #
-#############################################################   ':::::::'   ####
 import random
-import pulp
-import pyclipper
+import numpy as np
 from shapely.geometry import Polygon, Point
 from shapely import affinity
 from shapely.ops import unary_union
-import numpy as np
-import copy as cp
+
 from PyQt5.QtCore import (
     QPointF,
     QThread,
     QSemaphore,
     pyqtSignal,
     QObject,
-    Qt,
 )
 
 from PyQt5.QtGui import (

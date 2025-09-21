@@ -1,32 +1,9 @@
-#|===========================================================   .=<|||>=.   ==|#
-#|                                                              |(:)|||||     |#
-#|   ui/image_layer.py                                          !!!!!!||| 
-#|                                                         /||||||||||||/.:::::,
-#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-#|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
-#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
-#|                                                              :::::(|):     |#
-#|===========================================================   ':::::::'   ==|#
-
-
-#############################################################   .=<|||>=.   ####
-# |                                                              |(:)|||||      #
-# |   ui/image_layer.py                                          !!!!!!|||
-# |                                                         /||||||||||||/.:::::,
-# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-# |                                                        ||||||/.::::::::::::::
-# |   Created: 2025/08/12 15:43:01 ctrichet                 \|||/.::::::::::::::'
-# |   Updated: 2025/08/12 15:43:01 ctrichet                      :::......
-# |                                                              :::::(|):      #
-#############################################################   ':::::::'   ####
-
 import os
 import xml.etree.ElementTree as ET
 
-from PyQt5.QtCore import QRectF, Qt
-from PyQt5.QtGui import QPixmap, QPainter, QColor
-from PyQt5.QtWidgets import QVBoxLayout, QFileDialog, QDialog, QMessageBox
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QColor
+from PyQt5.QtWidgets import QFileDialog, QDialog, QMessageBox
 
 from core.model_items import DuplicataGroupItem
 from ui.layer import LayerWidget

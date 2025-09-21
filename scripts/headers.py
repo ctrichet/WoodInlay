@@ -22,30 +22,39 @@ def get_commit_author():
 
 
 # ============================================================
-# Header template (ASCII art basé sur ton exemple)
-# ============================================================
-
-HEADER_TEMPLATE = """#|===========================================================   .=<|||>=.   ==|#
-#|                                                              |(:)|||||     |#
-#|   {filename:<58} !!!!!!||| 
-#|                                                         /||||||||||||/.:::::,
-#|   By: {author} <{email}>         |||||||!!!!!!/.:::::::
-#|                                                        ||||||/.::::::::::::::
-#|   Created: {created} {author_id:<20} \|||/.::::::::::::::'
-#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
-#|                                                              :::::(|):     |#
-#|===========================================================   ':::::::'   ==|#
-"""
-
-
-# ============================================================
 # Core : insertion / mise à jour du header
 # ============================================================
+
+def make_header(filename, author, email, created, updated):
+    # Lignes fixes de l’ASCII art
+    line1 = "#|===========================================================   .=<|||>=.   ==|#"
+    line2 = "#|                                                              |(:)|||||     |#"
+    # Ligne 3 : nom du fichier aligné à gauche sur 58 caractères + "!!!!!!|||"
+    file_line = f"#|   {filename:<59}!!!!!!|||"
+    line4 = "#|                                                         /||||||||||||/.:::::,"
+
+    # Ligne By: avec padding exact pour aligner les barres
+    by_content = f"By: {author} <{email}>"
+    target_column = 57  # colonne où commencent les barres
+    current_length = 4 + len(by_content)  # 4 = "#|   " au début de la ligne
+    by_padding = " " * max(1, target_column - current_length)
+    line5 = f"#|   {by_content}{by_padding}|||||||!!!!!!/.:::::::"
+
+    line6 = "#|                                                        ||||||/.::::::::::::::"
+
+    # Created / Updated : alignement exact sur 20 caractères pour author_id
+    author_id = author.lower().replace(" ", "")
+    line7 = f"#|   Created: {created} {author_id:<24} \\|||/.::::::::::::::'"
+    line8 = f"#|   Updated: {updated} {author_id:<29} :::......"
+    line9 = "#|                                                              :::::(|):     |#"
+    line10 = "#|===========================================================   ':::::::'   ==|#"
+
+    header = "\n".join([line1, line2, file_line, line4, line5, line6, line7, line8, line9, line10])
+    return header
 
 
 def update_header(path, author, email):
     now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-    author_id = author.lower().replace(" ", "")
     filename = os.path.relpath(path)
 
     with open(path, "r", encoding="utf-8") as f:
@@ -54,23 +63,16 @@ def update_header(path, author, email):
     header_regex = re.compile(r"#\|=+.*?=+\|#", re.DOTALL)
 
     if header_regex.search(content):
-        # Header déjà présent → mise à jour de la ligne "Updated"
+        # Header déjà présent → mise à jour uniquement de "Updated"
         content = re.sub(
             r"(#\|\s*Updated: ).*",
-            f"#|   Updated: {now} {author_id:<20}      :::......",
+            f"#|   Updated: {now} {author.lower().replace(' ',''):<29} :::......",
             content,
             count=1,
         )
     else:
         # Pas de header → on insère un nouveau
-        header = HEADER_TEMPLATE.format(
-            filename=filename,
-            author=author,
-            email=email,
-            created=now,
-            updated=now,
-            author_id=author_id,
-        )
+        header = make_header(filename, author, email, now, now)
         content = header + "\n\n" + content
 
     with open(path, "w", encoding="utf-8") as f:
@@ -86,5 +88,5 @@ if __name__ == "__main__":
 
     for root, _, files in os.walk("."):
         for file in files:
-            if file.endswith(".py") and "update_headers.py" not in file:
+            if file.endswith(".py"):
                 update_header(os.path.join(root, file), author, email)

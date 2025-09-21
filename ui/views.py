@@ -1,36 +1,9 @@
-#|===========================================================   .=<|||>=.   ==|#
-#|                                                              |(:)|||||     |#
-#|   ui/views.py                                                !!!!!!||| 
-#|                                                         /||||||||||||/.:::::,
-#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-#|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
-#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
-#|                                                              :::::(|):     |#
-#|===========================================================   ':::::::'   ==|#
-
-
-#############################################################   .=<|||>=.   ####
-# |                                                              |(:)|||||      #
-# |   ui/views.py                                                !!!!!!|||
-# |                                                         /||||||||||||/.:::::,
-# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-# |                                                        ||||||/.::::::::::::::
-# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-# |                                                              :::::(|):      #
-#############################################################   ':::::::'   ####
-
 from PyQt5.QtWidgets import (
     QGraphicsView,
     QApplication,
-    QScrollBar,
-    QProxyStyle,
-    QStyleOptionComplex,
-    QStyle,
 )
 from PyQt5.QtGui import QPainter, QPen, QColor
-from PyQt5.QtCore import Qt, QRectF, QRect
+from PyQt5.QtCore import Qt, QRectF
 
 from core.model_items import GroupItem, DuplicataGroupItem
 from styles.colors import Colors
@@ -52,8 +25,6 @@ class ZoomableView(QGraphicsView):
         self.setDragMode(QGraphicsView.NoDrag)
         self.setMouseTracking(True)
         self._rubber_band_rect = None
-
-    ################################- ZOOM -####################################
 
     def _can_zoom(self, factor: float) -> bool:
         view_size = self.viewport().size()

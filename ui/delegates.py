@@ -1,26 +1,3 @@
-#|===========================================================   .=<|||>=.   ==|#
-#|                                                              |(:)|||||     |#
-#|   ui/delegates.py                                            !!!!!!||| 
-#|                                                         /||||||||||||/.:::::,
-#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-#|                                                        ||||||/.::::::::::::::
-#|   Created: 2025/09/21 13:23:55 ctrichet             \|||/.::::::::::::::'
-#|   Updated: 2025/09/21 13:23:55 ctrichet                  :::......
-#|                                                              :::::(|):     |#
-#|===========================================================   ':::::::'   ==|#
-
-
-#############################################################   .=<|||>=.   ####
-# |                                                              |(0)|||||      #
-# |   ui/delegates.py                                            !!!!!!|||
-# |                                                         /||||||||||||/.:::::,
-# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-# |                                                        ||||||/.::::::::::::::
-# |   Created: 2025/08/12 11:43:00 ctrichet                 \|||/.::::::::::::::'
-# |   Updated: 2025/08/12 11:43:00 ctrichet                      :::......
-# |                                                              :::::(0):      #
-#############################################################   ':::::::'   ####
-
 from PyQt5.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem, QStyle
 from PyQt5.QtCore import Qt
 
@@ -49,13 +26,3 @@ class ColorBackgroundDelegate(QStyledItemDelegate):
 
     def sizeHint(self, option, index):
         return super().sizeHint(option, index)
-
-
-class TreeItemHighlightDelegate(QStyledItemDelegate):
-    def paint(self, painter, option, index):
-        # Copie de l'option mais sans l'état "Selected" pour empêcher le fond bleu
-        custom_option = QStyleOptionViewItem(option)
-        custom_option.state &= ~QStyle.State_Selected
-
-        # Dessine le fond de l’item sans le surlignage de Qt
-        super().paint(painter, custom_option, index)
