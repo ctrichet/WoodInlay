@@ -74,9 +74,11 @@ def update_header(path, author, email):
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    header_regex = re.compile(r"#\|=+.*?=+\|#", re.DOTALL)
+    header_start = "#|===========================================================   .=<|||>=.   ==|#"
 
-    if header_regex.search(content):
+    # Vérifie si la première ligne correspond au header existant
+    lines = content.splitlines()
+    if lines and lines[0].strip() == header_start:
         # Header déjà présent → mise à jour uniquement de "Updated"
         content = re.sub(
             r"(#\|\s*Updated: ).*",
