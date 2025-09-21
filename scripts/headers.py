@@ -1,3 +1,14 @@
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   scripts/headers.py                                         !!!!!!|||
+#|                                                         /||||||||||||/.:::::,
+#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+#|                                                        ||||||/.::::::::::::::
+#|   Created: 2025/09/21 14:32:45 ctrichet                 \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 14:32:45 ctrichet                      :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
 import os
 import re
 import subprocess
@@ -46,7 +57,7 @@ def make_header(filename, author, email, created, updated):
     # Created / Updated : alignement exact sur 20 caractères pour author_id
     author_id = author.lower().replace(" ", "")
     line7 = f"#|   Created: {created} {author_id:<24} \\|||/.::::::::::::::'"
-    line8 = f"#|   Updated: 2025/09/21 14:32:45 ctrichet                      :::......
+    line8 = f"#|   Updated: {updated} {author_id:<29} :::......"
     line9 = "#|                                                              :::::(|):     |#"
     line10 = "#|===========================================================   ':::::::'   ==|#"
 
@@ -91,5 +102,5 @@ if __name__ == "__main__":
 
     for root, _, files in os.walk("."):
         for file in files:
-            if file.endswith(".py"):
+            if file.endswith(".py") and "headers.py" not in file:
                 update_header(os.path.join(root, file), author, email)
