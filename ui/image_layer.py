@@ -5,10 +5,9 @@
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: 2025/09/22 16:07:05 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/09/22 17:09:42 ctrichet                      :::......
+#|   Updated: 2025/09/22 17:17:05 ctrichet                      :::......
 #|                                                              :::::(|):     |#
 #|===========================================================   ':::::::'   ==|#
-
 import os
 import xml.etree.ElementTree as ET
 
