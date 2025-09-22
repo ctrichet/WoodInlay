@@ -87,10 +87,6 @@ class ImageLayerWidget(LayerWidget):
         self.view.update_padding()
 
     def export_svg(self):
-        if not self.image_path:
-            QMessageBox.warning(self, "Export SVG", "Aucune image de fond chargée.")
-            return
-
         svg_root = ET.Element(
             "svg", {"xmlns": "http://www.w3.org/2000/svg", "version": "1.1"}
         )

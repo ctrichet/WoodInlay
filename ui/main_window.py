@@ -114,13 +114,15 @@ class MainWindow(QMainWindow):
 
     # ----------------- Toolbar -----------------
     def init_toolbar(self):
-        self.toolbar = CollapsibleToolbar(
-            zoom_in_func=self.zoom_in_current_view,
-            zoom_out_func=self.zoom_out_current_view,
-        )
+        self.toolbar = CollapsibleToolbar()
+        self.toolbar.capture_btn.clicked.connect(self.capture_png)
+        self.toolbar.export_btn.clicked.connect(self.export_to_svg)
         self.toolbar.duplicate_btn.clicked.connect(
             self.duplicate_via_toolbar_or_shortcut
         )
+        self.toolbar.nest_btn.clicked.connect(self.launch_nesting)
+        self.toolbar.zoom_in_btn.clicked.connect(self.zoom_in_current_view)
+        self.toolbar.zoom_out_btn.clicked.connect(self.zoom_out_current_view)
         self.layout.insertWidget(0, self.toolbar, 0)
 
     # ----------------- Dock Preview -----------------
@@ -160,10 +162,13 @@ class MainWindow(QMainWindow):
             self.duplicate_via_toolbar_or_shortcut
         )
         QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(
-            self.export_active_layer_to_svg
+            self.export_to_svg
         )
         QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(
-            self.open_nesting_dialog
+            self.launch_nesting
+        )
+        QShortcut(QKeySequence("Ctrl+P"), self).activated.connect(
+            self.capture_png
         )
         QShortcut(QKeySequence("Ctrl+C"), self).activated.connect(self.stop_nesting)
 
@@ -181,26 +186,13 @@ class MainWindow(QMainWindow):
             return image_layer_widget.scene
         return None
 
-    def export_active_layer_to_svg(self):
-        current_tab = self.tabs.currentWidget()
-        scene = self.active_scene()
-
-        if scene is None:
-            debug_log("Export ignoré : aucun calque actif")
-            return
-
-        # Retrouve le widget correspondant à la scène active
-        for widget, image_layer in self.image_layers.items():
-            if image_layer.scene is scene:
-                debug_log(f"Export SVG pour le calque : {image_layer.image_path}")
-                image_layer.export_svg()
+    def export_to_svg(self):
+        if isinstance(self.layer, SvgLayerWidget):
                 return
+        self.layer.export_svg()
 
-        # Sinon, il s'agit probablement du svg_layer
-        if current_tab is self.svg_layer:
-            debug_log("Export ignoré : calque actif = SVG layer")
-        else:
-            debug_log("Export ignoré : calque actif inconnu")
+    def capture_png(self):
+        self.svg_layer.capture_png()
 
     def load_svg_layer(self, file_path):
         layer_widget = SvgLayerWidget(file_path)
@@ -324,9 +316,17 @@ class MainWindow(QMainWindow):
 
         # Gestion du dock de preview
         if isinstance(self.layer, SvgLayerWidget):
+            self.toolbar.capture_btn.show()
+            self.toolbar.duplicate_btn.show()
+            self.toolbar.export_btn.hide()
+            self.toolbar.nest_btn.hide()
             if not self.preview_dock.isFloating():
                 self.preview_dock.hide()
         else:
+            self.toolbar.capture_btn.hide()
+            self.toolbar.duplicate_btn.hide()
+            self.toolbar.export_btn.show()
+            self.toolbar.nest_btn.show()
             if not self.preview_dock.isFloating():
                 self.preview_dock.show()
                 self.preview_dock.update_fit()
@@ -410,7 +410,7 @@ class MainWindow(QMainWindow):
             item.setPos(new_pos)
             item.setRotation(item.rotation() + angle_degrees)
 
-    def open_nesting_dialog(self):
+    def launch_nesting(self):
         layer = self.layer
         if isinstance(layer, SvgLayerWidget):
             return

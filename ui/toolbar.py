@@ -14,17 +14,28 @@ from PyQt5.QtCore import QSize
 
 
 class CollapsibleToolbar(QWidget):
-    def __init__(self, zoom_in_func, zoom_out_func):
+    def __init__(self):
         super().__init__()
         self.setObjectName("CollapsibleToolbar")
-        self.zoom_in_func = zoom_in_func
-        self.zoom_out_func = zoom_out_func
 
         self.content_widget = QWidget()
         layout = QVBoxLayout(self.content_widget)
         layout.setContentsMargins(0, 5, 0, 5)
         layout.setSpacing(2)
-        self.content_widget.setObjectName("toolbar_content")
+
+        capture_icon = QIcon("./icons/camera.svg")
+        self.capture_btn = QPushButton()
+        self.capture_btn.setIcon(capture_icon)
+        self.capture_btn.setIconSize(QSize(24, 24))
+        self.capture_btn.setFlat(True)
+        layout.addWidget(self.capture_btn)
+
+        export_icon = QIcon("./icons/export.svg")
+        self.export_btn = QPushButton()
+        self.export_btn.setIcon(export_icon)
+        self.export_btn.setIconSize(QSize(24, 24))
+        self.export_btn.setFlat(True)
+        layout.addWidget(self.export_btn)
 
         duplicate_icon = QIcon("./icons/duplicate.svg")
         self.duplicate_btn = QPushButton()
@@ -32,6 +43,13 @@ class CollapsibleToolbar(QWidget):
         self.duplicate_btn.setIconSize(QSize(24, 24))
         self.duplicate_btn.setFlat(True)
         layout.addWidget(self.duplicate_btn)
+
+        nest_icon = QIcon("./icons/nest.svg")
+        self.nest_btn = QPushButton()
+        self.nest_btn.setIcon(nest_icon)
+        self.nest_btn.setIconSize(QSize(24, 24))
+        self.nest_btn.setFlat(True)
+        layout.addWidget(self.nest_btn)
 
         zoom_in_icon = QIcon("./icons/zoom_in.svg")
         self.zoom_in_btn = QPushButton()
@@ -62,9 +80,6 @@ class CollapsibleToolbar(QWidget):
 
         self.collapsed = True
         self.update_ui()
-
-        self.zoom_in_btn.clicked.connect(self.zoom_in_func)
-        self.zoom_out_btn.clicked.connect(self.zoom_out_func)
 
     def toggle_collapsed(self):
         self.collapsed = not self.collapsed

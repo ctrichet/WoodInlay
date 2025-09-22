@@ -13,8 +13,9 @@ import uuid
 import xml.etree.ElementTree as ET
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QImage, QPainter
 from PyQt5.QtWidgets import (
-    QTreeWidgetItem,
+    QTreeWidgetItem, QFileDialog
 )
 
 from core.model_items import PathItem, GroupItem
@@ -181,3 +182,34 @@ class SvgLayerWidget(LayerWidget):
                 tree_item.setText(0, element_id)
                 tree_item.setData(0, Qt.UserRole, element_id)
                 self.tree_items_by_id[element_id] = tree_item
+
+    def capture_png(self):
+
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            "Exporter en PNG",
+            "",
+            "Images PNG (*.png)"
+        )
+        if not filename:
+            return  # Annulé par l'utilisateur
+
+        # Forcer l'extension .png si absente
+        if not filename.lower().endswith(".png"):
+            filename += ".png"
+
+        # Créer une image de la taille du widget
+        image = QImage(self.size(), QImage.Format_ARGB32)
+        image.fill(Qt.transparent)
+
+        # Peindre le contenu du widget sur l'image
+        painter = QPainter(image)
+        self.render(painter)
+        painter.end()
+
+        # Sauvegarder en PNG
+        if not image.save(filename, "PNG"):
+            print(f"[ERREUR] Impossible de sauvegarder {filename}")
+        else:
+            print(f"[OK] Capture exportée : {filename}")
+
