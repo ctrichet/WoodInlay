@@ -50,7 +50,13 @@ class NestingWorker(QThread):
 class NestingManager(QObject):
     placement_signal = pyqtSignal(int, float, float, float)
     _max_repulsion_iters = 50
-    _fitness_methods = ["gravity", "area", "areaTopLeft", "quadratic", "quadraticTopLeft"]
+    _fitness_methods = [
+        "gravity",
+        "area",
+        "areaTopLeft",
+        "quadratic",
+        "quadraticTopLeft",
+    ]
 
     def transformed_polygons_indiv(self, rotations, positions):
         """
@@ -145,9 +151,7 @@ class NestingManager(QObject):
         self.population_size = 30
         self.elite_size: int = 5
         self.tolerance: float = 0.002
-        self.fitness_method = (
-            "areaTopLeft"
-        )
+        self.fitness_method = "areaTopLeft"
         self.allow_mirror = False
         self.quadratic_fitness_coeff: float = 0.5
         self.allowed_rotations = None
@@ -165,7 +169,6 @@ class NestingManager(QObject):
 
     def set_allowed_rotations(self):
         self.allowed_rotations = [rot for rot in range(0, 360, self.mutation_rotation)]
-
 
     def stop(self):
         self.run = False
@@ -247,7 +250,7 @@ class NestingManager(QObject):
                 self.polygons_nested_with_spacing.append(poly_shapely_with_margin)
             elif poly_shapely.within(self.bin_polygon_with_margins):
                 self.bin_polygon_with_margins.difference(poly_shapely)
-        self.bin_polygon_with_margins.buffer(- self.spacing / 2)
+        self.bin_polygon_with_margins.buffer(-self.spacing / 2)
         if not self.check_bin_capacity:
             debug_log("Aire de la bin insuffisante")
             return

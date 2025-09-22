@@ -36,13 +36,21 @@ from utils.debug import debug_log
 import json
 import os
 from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QDoubleSpinBox, QSpinBox,
-    QComboBox, QCheckBox, QDialogButtonBox
+    QDialog,
+    QVBoxLayout,
+    QLabel,
+    QDoubleSpinBox,
+    QSpinBox,
+    QComboBox,
+    QCheckBox,
+    QDialogButtonBox,
 )
 
 
 class NestingConfigDialog(QDialog):
-    _CONFIG_FILE = Path(__file__).resolve().parent.parent / "config" / "nesting_config.json"
+    _CONFIG_FILE = (
+        Path(__file__).resolve().parent.parent / "config" / "nesting_config.json"
+    )
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -99,7 +107,9 @@ class NestingConfigDialog(QDialog):
         # Coefficient pour fitness (affiché seulement si quadratic)
         self.fitness_coeff_spin = QDoubleSpinBox()
         self.fitness_coeff_spin.setRange(0, 1)
-        self.fitness_coeff_spin.setValue(self.config.get("quadratic_fitness_coeff", 0.5))
+        self.fitness_coeff_spin.setValue(
+            self.config.get("quadratic_fitness_coeff", 0.5)
+        )
         self.fitness_coeff_label = QLabel("Quadratic fitness coefficient :")
         layout.addWidget(self.fitness_coeff_label)
         layout.addWidget(self.fitness_coeff_spin)
@@ -131,7 +141,9 @@ class NestingConfigDialog(QDialog):
         self.setLayout(layout)
 
         # Gestion de la visibilité du coefficient
-        self.optimization_combo.currentTextChanged.connect(self.update_fitness_coeff_visibility)
+        self.optimization_combo.currentTextChanged.connect(
+            self.update_fitness_coeff_visibility
+        )
         self.update_fitness_coeff_visibility(self.optimization_combo.currentText())
 
     def update_fitness_coeff_visibility(self, text: str):
@@ -160,12 +172,11 @@ class NestingConfigDialog(QDialog):
                 "optimization_method": self.optimization_combo.currentText(),
                 "quadratic_fitness_coeff": self.fitness_coeff_spin.value(),
                 "tolerance": self.tolerance_spin.value(),
-                "allow_mirror": self.mirror_check.isChecked()
+                "allow_mirror": self.mirror_check.isChecked(),
             }
             with open(self._CONFIG_FILE, "w") as f:
                 json.dump(config, f, indent=4)
         self.accept()
-
 
     def set_config(self, nesting_manager):
         nesting_manager.spacing = self.spacing_spin.value()
@@ -191,7 +202,8 @@ class BackgroundSelectionDialog(QDialog):
         layout = QVBoxLayout(self)
 
         self.combo = QComboBox(self)
-        self.combo.setStyleSheet("""
+        self.combo.setStyleSheet(
+            """
             QComboBox QAbstractItemView::item:hover {
                 background: transparent;
             }
@@ -199,8 +211,8 @@ class BackgroundSelectionDialog(QDialog):
                 background: transparent;
                 color: black;  /* ou la couleur de ton texte normal */
             }
-        """)
-
+        """
+        )
 
         self.layer_colors = []
 
