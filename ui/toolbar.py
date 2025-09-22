@@ -1,3 +1,14 @@
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/toolbar.py                                              !!!!!!|||
+#|                                                         /||||||||||||/.:::::,
+#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+#|                                                        ||||||/.::::::::::::::
+#|   Created: 2025/09/22 16:07:05 ctrichet                 \|||/.::::::::::::::'
+#|   Updated: 2025/09/22 16:07:05 ctrichet                      :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QToolButton
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize

@@ -1,3 +1,14 @@
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   ui/__init__.py                                             !!!!!!|||
+#|                                                         /||||||||||||/.:::::,
+#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+#|                                                        ||||||/.::::::::::::::
+#|   Created: 2025/09/22 16:07:05 ctrichet                 \|||/.::::::::::::::'
+#|   Updated: 2025/09/22 16:07:05 ctrichet                      :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
+
 from .main_window import MainWindow
 from .svg_layer import SvgLayerWidget
 from .image_layer import ImageLayerWidget
