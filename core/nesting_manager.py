@@ -85,8 +85,6 @@ class NestingManager(QObject):
         for poly in self.polygons_nested:
             # taille du polygone pour éviter qu'il sorte du bin
             p_minx, p_miny, p_maxx, p_maxy = poly.bounds
-            width = p_maxx - p_minx
-            height = p_maxy - p_miny
 
             # choisir dx, dy aléatoire pour placer le polygone dans le bin
             dx = random.uniform(minx - p_minx, maxx - p_maxx)
