@@ -5,7 +5,7 @@
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: 2025/09/22 16:07:05 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/09/22 18:30:47 ctrichet                      :::......
+#|   Updated: 2025/09/22 19:50:24 ctrichet                      :::......
 #|                                                              :::::(|):     |#
 #|===========================================================   ':::::::'   ==|#
 import os, fitz, sys
@@ -161,15 +161,9 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+D"), self).activated.connect(
             self.duplicate_via_toolbar_or_shortcut
         )
-        QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(
-            self.export_to_svg
-        )
-        QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(
-            self.launch_nesting
-        )
-        QShortcut(QKeySequence("Ctrl+P"), self).activated.connect(
-            self.capture_png
-        )
+        QShortcut(QKeySequence("Ctrl+E"), self).activated.connect(self.export_to_svg)
+        QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(self.launch_nesting)
+        QShortcut(QKeySequence("Ctrl+P"), self).activated.connect(self.capture_png)
         QShortcut(QKeySequence("Ctrl+C"), self).activated.connect(self.stop_nesting)
 
     # ----------------- Utilitaires -----------------
@@ -188,7 +182,7 @@ class MainWindow(QMainWindow):
 
     def export_to_svg(self):
         if isinstance(self.layer, SvgLayerWidget):
-                return
+            return
         self.layer.export_svg()
 
     def capture_png(self):

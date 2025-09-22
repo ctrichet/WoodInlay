@@ -5,7 +5,7 @@
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: 2025/09/22 16:07:05 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/09/22 18:30:47 ctrichet                      :::......
+#|   Updated: 2025/09/22 19:50:24 ctrichet                      :::......
 #|                                                              :::::(|):     |#
 #|===========================================================   ':::::::'   ==|#
 import re
@@ -14,9 +14,7 @@ import xml.etree.ElementTree as ET
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPainter
-from PyQt5.QtWidgets import (
-    QTreeWidgetItem, QFileDialog
-)
+from PyQt5.QtWidgets import QTreeWidgetItem, QFileDialog
 
 from core.model_items import PathItem, GroupItem
 from ui.layer import LayerWidget
@@ -186,10 +184,7 @@ class SvgLayerWidget(LayerWidget):
     def capture_png(self):
 
         filename, _ = QFileDialog.getSaveFileName(
-            self,
-            "Exporter en PNG",
-            "",
-            "Images PNG (*.png)"
+            self, "Exporter en PNG", "", "Images PNG (*.png)"
         )
         if not filename:
             return  # Annulé par l'utilisateur
@@ -212,4 +207,3 @@ class SvgLayerWidget(LayerWidget):
             print(f"[ERREUR] Impossible de sauvegarder {filename}")
         else:
             print(f"[OK] Capture exportée : {filename}")
-
