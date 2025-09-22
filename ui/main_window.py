@@ -357,12 +357,13 @@ class MainWindow(QMainWindow):
             return None
 
         elif isinstance(self.layer, SvgLayerWidget):
-            dialog = BackgroundSelectionDialog(self.image_layer_widgets, self)
-            target_path = dialog.get_selected_layer_path()
+            if len(self.image_layer_widgets) == 1:
+                target_layer_widget = next(iter(self.image_layer_widgets.values()))
+            else:
+                dialog = BackgroundSelectionDialog(self.image_layer_widgets, self)
+                target_path = dialog.get_selected_layer_path()
 
-            target_layer_widget = self.image_layer_widgets.get(target_path)
-
-            debug_log(f"✅ Duplication vers calque sélectionné $ {target_path}")
+                target_layer_widget = self.image_layer_widgets.get(target_path)
 
         elif isinstance(self.layer, ImageLayerWidget):
             target_layer_widget = self.layer
@@ -411,12 +412,13 @@ class MainWindow(QMainWindow):
             item.setRotation(item.rotation() + angle_degrees)
 
     def open_nesting_dialog(self):
+        layer = self.layer
+        if isinstance(layer, SvgLayerWidget):
+            return
         dialog = NestingConfigDialog(self)
         if dialog.exec_() == QDialog.Accepted:
-            config = dialog.get_config()
-            print("[DEBUG] Nesting config:", config)
-            layer = self.active_image_layer()
-            layer.worker = NestingWorker(config, layer)
+            layer.worker = NestingWorker(self.layer)
+            dialog.set_config(layer.worker.nm)
             layer.worker.nm.placement_signal.connect(layer.on_placement)
             layer.worker.start()
         return None

@@ -39,10 +39,9 @@ from shapely.geometry import Polygon
 class NestingWorker(QThread):
     placement_signal = pyqtSignal(int, float, float, float)  # idx, rot, dx, dy
 
-    def __init__(self, config, layer):
+    def __init__(self, layer):
         super().__init__()
-        self.layer = layer
-        self.nm = NestingManager(None, self.layer)
+        self.nm = NestingManager(layer)
 
     def run(self):
         self.nm.nest()
@@ -50,8 +49,8 @@ class NestingWorker(QThread):
 
 class NestingManager(QObject):
     placement_signal = pyqtSignal(int, float, float, float)
-    max_repulsion_iters = 50
-    max_attempts_per_ind = 30
+    _max_repulsion_iters = 50
+    _fitness_methods = ["gravity", "area", "areaTopLeft", "quadratic", "quadraticTopLeft"]
 
     def transformed_polygons_indiv(self, rotations, positions):
         """
@@ -137,26 +136,25 @@ class NestingManager(QObject):
                     new_population.append(child)
             population = new_population
 
-    def __init__(self, config, layer):
+    def __init__(self, layer):
         super().__init__()
         self.bin_margin: float = 2
-        self.spacing: float = 2
+        self.spacing: float = 20
         self.mutation_rotation: int = 10
         self.mutation_translation: float = 5
         self.population_size = 30
         self.elite_size: int = 5
-        self.lp_refine_top: int = 3
-        self.lp_delta: float = 5.0
+        self.tolerance: float = 0.002
         self.fitness_method = (
-            "areaTopLeft"  # gravity/area/area_top/quadratic/quadratic_top
+            "areaTopLeft"
         )
+        self.allow_mirror = False
         self.quadratic_fitness_coeff: float = 0.5
-        self.allowed_rotations = [rot for rot in range(0, 360, self.mutation_rotation)]
+        self.allowed_rotations = None
 
         self.layer = layer
         self.bin_polygon_with_margins = self.get_layer_bin_polygon()
         self.run = True
-        self.polygons_fixed_with_spacing = []
         self.polygons_nested_with_spacing = []
         self.polygons_nested = []
         self.polygons_nested_semaphores = {}
@@ -164,6 +162,10 @@ class NestingManager(QObject):
         self.initial_rotations = []
         self.placements = {}
         self.best_score = None
+
+    def set_allowed_rotations(self):
+        self.allowed_rotations = [rot for rot in range(0, 360, self.mutation_rotation)]
+
 
     def stop(self):
         self.run = False
@@ -235,7 +237,7 @@ class NestingManager(QObject):
                 debug_log(f"type item : {type(item)}")
                 continue
 
-            poly_shapely = item.to_shapely_polygon()
+            poly_shapely = item.to_shapely_polygon(self.tolerance)
             if item in scene.selectedItems():
                 idx = len(self.polygons_nested)
                 self.initial_rotations.append(item.rotation())
@@ -244,15 +246,13 @@ class NestingManager(QObject):
                 poly_shapely_with_margin = poly_shapely.buffer(self.spacing / 2)
                 self.polygons_nested_with_spacing.append(poly_shapely_with_margin)
             elif poly_shapely.within(self.bin_polygon_with_margins):
-                self.polygons_fixed_with_spacing.append(
-                    poly_shapely.buffer(self.spacing / 2)
-                )
-
+                self.bin_polygon_with_margins.difference(poly_shapely)
+        self.bin_polygon_with_margins.buffer(- self.spacing / 2)
         if not self.check_bin_capacity:
             debug_log("Aire de la bin insuffisante")
             return
 
-        self._separate_by_repulsion()
+        return self._separate_by_repulsion()
 
     def is_valid_individual(self, rotations, positions):
         """
@@ -276,12 +276,7 @@ class NestingManager(QObject):
             if not poly.within(self.bin_polygon_with_margins):
                 return False
 
-            # Collision avec fixes
-            for fixed in self.polygons_fixed_with_spacing:
-                if poly.intersects(fixed):
-                    return False
-
-            # Collision avec polygones déjà placés
+            # Collision avec polygones
             for p in placed_polys:
                 if poly.intersects(p):
                     return False
@@ -290,8 +285,9 @@ class NestingManager(QObject):
         return True
 
     def nest(self):
-        self.collect()
-        self.genetic_nesting()
+        self.set_allowed_rotations()
+        if self.collect():
+            self.genetic_nesting()
         return
 
     def _separate_by_repulsion(self) -> bool:
@@ -300,7 +296,6 @@ class NestingManager(QObject):
         Met à jour self.polygons_nested et self.polygons_nested_with_spacing.
         Retourne True si la séparation a convergé, False sinon.
         """
-        debug_log("_separate_by_repulsion start")
         n = len(self.polygons_nested_with_spacing)
         if n == 0:
             return True
@@ -310,38 +305,14 @@ class NestingManager(QObject):
 
         max_disp_per_iter = self.spacing * 2  # limite pour éviter saut trop grand
 
-        for it in range(NestingManager.max_repulsion_iters):
+        for it in range(NestingManager._max_repulsion_iters):
             debug_log(f"iteration : {it}")
             overlap_found = False
             displacements = [np.array([0.0, 0.0]) for _ in range(n)]
 
+            # Collision avec autres polygones
             for i in range(n):
                 poly_i = placed_polys[i]
-
-                # Collision avec polygones fixes
-                for fixed in self.polygons_fixed_with_spacing:
-                    if poly_i.intersects(fixed):
-                        overlap_found = True
-                        inter = poly_i.intersection(fixed)
-                        if not inter.is_empty:
-                            # vecteur du centre vers poly_i
-                            c_i = np.array(poly_i.centroid.coords[0])
-                            c_fixed = np.array(fixed.centroid.coords[0])
-                            v = c_i - c_fixed
-                            dist = np.linalg.norm(v)
-                            if dist < 1e-3:
-                                v = np.random.rand(2) - 0.5
-                                dist = np.linalg.norm(v)
-                            v_unit = v / dist
-                            scale = np.sqrt(inter.area)
-                            dx, dy = v_unit * scale
-                            # limiter le déplacement
-                            dx, dy = np.clip(
-                                [dx, dy], -max_disp_per_iter, max_disp_per_iter
-                            )
-                            displacements[i] += np.array([dx, dy])
-
-                # Collision avec autres polygones
                 for j in range(i + 1, n):
                     poly_j = placed_polys[j]
                     if poly_i.intersects(poly_j):
@@ -405,7 +376,7 @@ class NestingManager(QObject):
                     self.polygons_nested_semaphores[i] = QSemaphore(0)
                     self.emit_placement(i, rot, dx, dy)
                     self.polygons_nested_semaphores[i].acquire()
-                    poly = item.to_shapely_polygon()
+                    poly = item.to_shapely_polygon(self.tolerance)
                     self.polygons_nested[i] = poly
                     self.polygons_nested_with_spacing[i] = poly.buffer(self.spacing / 2)
                     self.initial_rotations[i] = item.rotation()
@@ -415,26 +386,6 @@ class NestingManager(QObject):
 
         debug_log("Initial separation failed after max iterations.")
         return False
-
-    def _repulsion_vector(self, poly, fixed):
-        """
-        Calcule un vecteur minimal pour éloigner `poly` de `fixed`.
-        Retourne dx, dy.
-        """
-        # centroides
-        c_poly = np.array(poly.centroid.coords[0])
-        c_fixed = np.array(fixed.centroid.coords[0])
-        # vecteur direction de répulsion
-        v = c_poly - c_fixed
-        dist = np.linalg.norm(v)
-        if dist < 1e-3:
-            # éviter division par zéro : déplacement aléatoire
-            v = np.random.rand(2) - 0.5
-            dist = np.linalg.norm(v)
-        v_unit = v / dist
-        # amplitude : overlap minimal = buffer + 1.0
-        dx, dy = v_unit * self.spacing
-        return dx, dy
 
     def _mutual_repulsion_vectors(self, poly_i, poly_j):
         """
@@ -488,7 +439,7 @@ class NestingManager(QObject):
             min_left_bound = polygons[0].bounds[0]
             max_bottom_bound = 0
             min_top_bound = polygons[0].bounds[1]
-            for poly in polygons + self.polygons_fixed_with_spacing:
+            for poly in polygons:
                 left_bound, top_bound, right_bound, bottom_bound = poly.bounds
                 if left_bound < min_left_bound:
                     min_left_bound = left_bound
@@ -503,7 +454,7 @@ class NestingManager(QObject):
         elif self.fitness_method == "areaTopLeft":
             max_right_bound = 0
             max_bottom_bound = 0
-            for poly in polygons + self.polygons_fixed_with_spacing:
+            for poly in polygons:
                 right_bound = poly.bounds[2]
                 bottom_bound = poly.bounds[3]
                 if right_bound > max_right_bound:
@@ -518,7 +469,7 @@ class NestingManager(QObject):
             max_bottom_bound = 0
             min_top_bound = polygons[0].bounds[1]
 
-            for poly in polygons + self.polygons_fixed_with_spacing:
+            for poly in polygons:
                 left_bound, top_bound, right_bound, bottom_bound = poly.bounds
                 if left_bound < min_left_bound:
                     min_left_bound = left_bound
@@ -540,7 +491,7 @@ class NestingManager(QObject):
         elif self.fitness_method == "quadraticTopLeft":
             max_right_bound = 0
             max_bottom_bound = 0
-            for poly in polygons + self.polygons_fixed_with_spacing:
+            for poly in polygons:
                 right_bound = poly.bounds[2]
                 bottom_bound = poly.bounds[3]
                 if right_bound > max_right_bound:
@@ -559,7 +510,6 @@ class NestingManager(QObject):
 
     def check_bin_capacity(self):
         total_area = sum(poly.area for poly in self.polygons_nested_with_spacing)
-        total_area += sum(poly.area for poly in self.polygons_fixed_with_spacing)
         return total_area < self.bin_polygon_with_margins.area
 
     def get_layer_bin_polygon(self):

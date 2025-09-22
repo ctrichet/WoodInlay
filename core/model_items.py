@@ -275,7 +275,7 @@ class DuplicataGroupItem(CompositeGroupItem):
 
         return transformed_polygon
 
-    def to_shapely_polygon(self, tolerance: float = 0.002):
+    def to_shapely_polygon(self, tolerance):
         """
         Convertit le QPolygonF en shapely.geometry.Polygon.
         Garantit que le premier point reste le même pour calculer un offset précis.

@@ -1,0 +1,11 @@
+{
+    "spacing": 2.0,
+    "margin": 5.0,
+    "rotation_step": 5.0,
+    "max_translation": 5,
+    "population_size": 30,
+    "optimization_method": "gravity",
+    "fitness_coeff": 0.5,
+    "tolerance": 0.5,
+    "mirror": false
+}
