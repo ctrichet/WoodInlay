@@ -1,13 +1,13 @@
-# |===========================================================   .=<|||>=.   ==|#
-# |                                                              |(:)|||||     |#
-# |   scripts/headers.py                                         !!!!!!|||
-# |                                                         /||||||||||||/.:::::,
-# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-# |                                                        ||||||/.::::::::::::::
-# |   Created: 2025/09/21 14:32:45 ctrichet                 \|||/.::::::::::::::'
-# |   Updated: 2025/09/21 14:32:45 ctrichet                      :::......
-# |                                                              :::::(|):     |#
-# |===========================================================   ':::::::'   ==|#
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   scripts/headers.py                                         !!!!!!|||
+#|                                                         /||||||||||||/.:::::,
+#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+#|                                                        ||||||/.::::::::::::::
+#|   Created: 2025/09/21 14:32:45 ctrichet                 \|||/.::::::::::::::'
+#|   Updated: 2025/09/21 14:32:45 ctrichet                      :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
 
 import os
 import re
@@ -101,5 +101,5 @@ if __name__ == "__main__":
 
     for root, _, files in os.walk("."):
         for file in files:
-            if file.endswith(".py") and "headers.py" not in file:
+            if file.endswith(".py") and os.path.basename(file) != "headers.py":
                 update_header(os.path.join(root, file), author, email)

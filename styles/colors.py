@@ -278,6 +278,5 @@ def styleSheet():
     QHeaderView::section:checked::down-arrow {{
         width: 12px;
         height: 12px;
-
     }}
     """
