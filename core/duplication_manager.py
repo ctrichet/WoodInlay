@@ -8,6 +8,7 @@
 #|   Updated: 2025/09/22 17:09:42 ctrichet                      :::......
 #|                                                              :::::(|):     |#
 #|===========================================================   ':::::::'   ==|#
+
 from PyQt5.QtWidgets import QTreeWidgetItem
 from PyQt5.QtGui import QBrush
 from PyQt5.QtCore import Qt
