@@ -1,14 +1,3 @@
-# |===========================================================   .=<|||>=.   ==|#
-# |                                                              |(:)|||||     |#
-# |   core/duplication_manager.py                                !!!!!!|||
-# |                                                         /||||||||||||/.:::::,
-# |   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
-# |                                                        ||||||/.::::::::::::::
-# |   Created: 2025/09/21 14:32:45 ctrichet                 \|||/.::::::::::::::'
-# |   Updated: 2025/09/21 14:32:45 ctrichet                      :::......
-# |                                                              :::::(|):     |#
-# |===========================================================   ':::::::'   ==|#
-
 from PyQt5.QtWidgets import QTreeWidgetItem
 from PyQt5.QtGui import QBrush
 from PyQt5.QtCore import Qt
