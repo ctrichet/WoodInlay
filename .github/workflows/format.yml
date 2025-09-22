@@ -33,6 +33,17 @@ jobs:
       - name: Update headers
         run: python scripts/headers.py
 
+      # Mettre en forme avec black
+      - name: Run Black with header protection
+        run: |
+          for file in $(find . -name "*.py" ! -name "headers.py"); do
+            head -n 10 "$file" > "$file.tmp_header"
+            tail -n +11 "$file" | black -q - > "$file.tmp_code"
+            cat "$file.tmp_header" "$file.tmp_code" > "$file.tmp_full"
+            mv "$file.tmp_full" "$file"
+            rm "$file.tmp_header" "$file.tmp_code"
+          done
+
       # Vérification si des modifications ont été faites
       - name: Verify changes
         run: git diff --exit-code || echo "Code or headers need update"
