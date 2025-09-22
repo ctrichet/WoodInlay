@@ -21,5 +21,4 @@ if __name__ == "__main__":
     window = MainWindow()
     CustomTabBar._window = window
     window.show()
-
     sys.exit(app.exec_())
