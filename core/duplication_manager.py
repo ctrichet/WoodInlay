@@ -5,10 +5,9 @@
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: 2025/09/22 16:07:05 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/09/22 16:59:09 ctrichet                      :::......
+#|   Updated: 2025/09/22 17:09:42 ctrichet                      :::......
 #|                                                              :::::(|):     |#
 #|===========================================================   ':::::::'   ==|#
-
 from PyQt5.QtWidgets import QTreeWidgetItem
 from PyQt5.QtGui import QBrush
 from PyQt5.QtCore import Qt
