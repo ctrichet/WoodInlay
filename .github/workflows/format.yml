@@ -29,14 +29,46 @@ jobs:
       - name: Install dependencies
         run: pip install black
 
-      # Mise à jour des headers
-      - name: Update headers
-        run: python scripts/headers.py
-
-      # Mettre en forme avec black
-      - name: Run Black with header protection
+      - name: Update headers on changed files
         run: |
-          for file in $(find . -name "*.py" ! -name "headers.py"); do
+          # Récupérer les fichiers modifiés
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            files=$(git diff --name-only origin/develop...HEAD | grep '\.py$' || true)
+          else
+            files=$(git diff --name-only HEAD~1 HEAD | grep '\.py$' || true)
+          fi
+
+          # Exclure headers.py
+          files=$(echo "$files" | grep -v 'headers.py' || true)
+
+          if [ -z "$files" ]; then
+            echo "No Python files changed, skipping header update."
+            exit 0
+          fi
+
+          # Passer les fichiers modifiés en paramètre à headers.py
+          python scripts/headers.py $files
+
+      - name: Run Black on changed files with header protection
+        run: |
+          # Récupérer les fichiers modifiés dans le commit ou la PR
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            files=$(git diff --name-only origin/develop...HEAD | grep '\.py$' || true)
+          else
+            files=$(git diff --name-only HEAD~1 HEAD | grep '\.py$' || true)
+          fi
+
+          # Exclure headers.py
+          files=$(echo "$files" | grep -v 'headers.py' || true)
+
+          if [ -z "$files" ]; then
+            echo "No Python files changed, skipping Black."
+            exit 0
+          fi
+
+          # Formater chaque fichier en protégeant le header
+          for file in $files; do
+            echo "Formatting $file"
             head -n 10 "$file" > "$file.tmp_header"
             tail -n +11 "$file" | black -q - > "$file.tmp_code"
             cat "$file.tmp_header" "$file.tmp_code" > "$file.tmp_full"
