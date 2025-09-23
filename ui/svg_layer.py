@@ -5,7 +5,7 @@
 #|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
 #|                                                        ||||||/.::::::::::::::
 #|   Created: 2025/09/22 16:07:05 ctrichet                 \|||/.::::::::::::::'
-#|   Updated: 2025/09/22 19:50:24 ctrichet                      :::......
+#|   Updated: 2025/09/23 14:09:02 ctrichet                      :::......
 #|                                                              :::::(|):     |#
 #|===========================================================   ':::::::'   ==|#
 import re
@@ -204,4 +204,3 @@ class SvgLayerWidget(LayerWidget):
             print(f"[ERREUR] Impossible de sauvegarder {filename}")
         else:
             print(f"[OK] Capture exportée : {filename}")
-
