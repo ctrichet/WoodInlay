@@ -2,6 +2,10 @@
 
 Layout software for marquetry and nesting
 
+```bash
+$python3 app.py
+```
+
 ---
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub-blue?style=flat&logo=github)](https://github.com/sponsors/ctrichet)
