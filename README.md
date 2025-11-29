@@ -36,7 +36,6 @@ Key features include:
 
 - Designed to handle both simple and highly detailed laser-cut projects.
 
-While primarily tailored for **marquetry**, JediCut is versatile and can handle a wide range of laser cutting applications. The software also integrates a **nesting engine**, optimizing the arrangement of parts on the material surface to minimize waste and save time.
 
 ## Development Status & Contributions
 
