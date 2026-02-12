@@ -1,3 +1,13 @@
+#|===========================================================   .=<|||>=.   ==|#
+#|                                                              |(:)|||||     |#
+#|   setup.py                                                   !!!!!!|||
+#|                                                         /||||||||||||/.:::::,
+#|   By: ctrichet <clement.trichet.pro@gmail.com>         |||||||!!!!!!/.:::::::
+#|                                                        ||||||/.::::::::::::::
+#|   Created: 2026/02/12 22:58:57 ctrichet                 \|||/.::::::::::::::'
+#|   Updated: 2026/02/12 22:58:57 ctrichet                      :::......
+#|                                                              :::::(|):     |#
+#|===========================================================   ':::::::'   ==|#
 from setuptools import setup, find_packages
 
 setup(
@@ -6,13 +16,13 @@ setup(
     packages=find_packages(),
     install_requires=[
         "PyQt5>=5.15",
-        "PyMuPDF>=1.22",       # pour fitz
+        "PyMuPDF>=1.22",  # pour fitz
         "numpy>=1.23",
         "shapely>=2.0",
-        "svg.path>=3.0",       # pour from svg.path import parse_path
+        "svg.path>=3.0",  # pour from svg.path import parse_path
         "scipy>=1.10",
-        "svgpathtools>=1.5",   # si certaines fonctions utilisent svgpathtools
-        "Pillow>=9.5",         # si image.open est utilisé
+        "svgpathtools>=1.5",  # si certaines fonctions utilisent svgpathtools
+        "Pillow>=9.5",  # si image.open est utilisé
     ],
     entry_points={
         "console_scripts": [
